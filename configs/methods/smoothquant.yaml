@@ -1,0 +1,31 @@
+# ==============================================================================
+# SmoothQuant — W8A8 权重-激活联合量化
+# 通过平滑变换将激活量化的困难迁移到权重上
+# ==============================================================================
+
+name: "smoothquant"
+display_name: "SmoothQuant"
+supported_tracks: ["B"]
+library: "smoothquant"              # 依赖 smoothquant 库
+wrapper: "smoothquant"
+
+# 量化参数
+weight:
+  w_bits: 8
+  granularity: "per_channel"
+  scheme: "symmetric"
+
+activation:
+  a_bits: 8
+  granularity: "per_token"
+  scheme: "symmetric"
+  smoothquant_alpha: 0.5            # 迁移强度，越大=更多迁移到权重
+
+# 校准设置
+calibration:
+  required: true
+  dataset: "wikitext2"
+  num_samples: 512
+  seq_len: 2048
+  packing: true
+  seed: 42

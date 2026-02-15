@@ -1,0 +1,551 @@
+{
+  "meta": {
+    "filename": "20260214_102553__qwen2.5-7b__fp16__trackA",
+    "timestamp": "2026-02-14T10:25:53.750153",
+    "script": "scripts/run_one.py",
+    "cli_args": "scripts/run_one.py --model qwen2.5-7b --method fp16 --track A",
+    "model": "qwen2.5-7b",
+    "method": "fp16",
+    "track": "A"
+  },
+  "config": {
+    "env": {
+      "conda_env": "ptq-bench",
+      "python": "3.11",
+      "cuda": "12.8",
+      "torch": "2.10.0+cu128",
+      "transformers": "4.52",
+      "lm_eval": "0.4.11",
+      "vllm": null
+    },
+    "paths": {
+      "project_root": "/data2/zhu11/ptq-bench",
+      "data_root": "/data2/zhu11/quant_source/data",
+      "results_root": "/data2/zhu11/ptq-bench/results",
+      "plots_root": "/data2/zhu11/ptq-bench/plots",
+      "cache_dir": "/data2/zhu11/quant_source/models",
+      "model_cache_dir": "/data2/zhu11/quant_source/models"
+    },
+    "common_hyperparams": {
+      "seed": 42,
+      "max_seq_len": 2048,
+      "dtype": "float16",
+      "batch_size": 1,
+      "eval_default_fewshot": {
+        "mmlu": 5,
+        "gsm8k": 8,
+        "hellaswag": 10,
+        "winogrande": 5,
+        "arc_easy": 25,
+        "arc_challenge": 25,
+        "piqa": 0
+      }
+    },
+    "default_calibration": {
+      "dataset": "wikitext2",
+      "num_samples": 128,
+      "seq_len": 2048,
+      "packing": true,
+      "seed": 42
+    },
+    "default_eval": {
+      "core_quality": {
+        "ppl_datasets": [
+          "wikitext2"
+        ],
+        "lm_eval_tasks": [
+          "mmlu",
+          "hellaswag",
+          "winogrande",
+          "arc_easy",
+          "arc_challenge",
+          "piqa",
+          "gsm8k"
+        ]
+      },
+      "system_metrics": {
+        "enabled": false,
+        "batch_sizes": [
+          1,
+          8,
+          32
+        ],
+        "prompt_lens": [
+          128,
+          512,
+          2048
+        ],
+        "gen_lens": [
+          128,
+          256
+        ]
+      },
+      "long_context": {
+        "enabled": false,
+        "max_seq_len": 32768,
+        "tasks": [
+          "longbench"
+        ]
+      }
+    },
+    "name": "fp16",
+    "display_name": "FP16 (Baseline)",
+    "description": "权重 4-bit 量化，激活不量化。覆盖 RTN/GPTQ/AWQ/OmniQuant/SpQR 等方法。",
+    "constraints": {
+      "weight_bits": 4,
+      "activation_bits": 16,
+      "kv_quantize": false
+    },
+    "eval": {
+      "ppl_datasets": [
+        "wikitext2"
+      ],
+      "lm_eval_tasks": [
+        "mmlu",
+        "hellaswag",
+        "winogrande",
+        "arc_easy",
+        "arc_challenge",
+        "piqa",
+        "gsm8k"
+      ],
+      "primary_metric": "avg_accuracy",
+      "system_metrics": false
+    },
+    "supported_tracks": [
+      "A",
+      "B",
+      "C"
+    ],
+    "library": "transformers",
+    "wrapper": "fp16",
+    "quantize": false,
+    "calibration": {
+      "required": false
+    },
+    "model": {
+      "name": "qwen2.5-7b",
+      "model_id": "Qwen/Qwen2.5-7B",
+      "dtype": "bfloat16",
+      "max_seq_len": 131072,
+      "trust_remote_code": false,
+      "revision": null,
+      "tokenizer_id": null,
+      "adapter": null,
+      "attn_implementation": null,
+      "model_kwargs": {}
+    },
+    "track": "A"
+  },
+  "results": {
+    "ppl": {
+      "wikitext2": {
+        "ppl": 6.16,
+        "nll": 1.81808,
+        "num_windows": 291
+      }
+    },
+    "lm_eval": {
+      "arc_challenge": {
+        "alias": "arc_challenge",
+        "acc,none": 0.4795,
+        "acc_stderr,none": 0.0146,
+        "acc_norm,none": 0.5128,
+        "acc_norm_stderr,none": 0.0146
+      },
+      "arc_easy": {
+        "alias": "arc_easy",
+        "acc,none": 0.8043,
+        "acc_stderr,none": 0.0081,
+        "acc_norm,none": 0.7744,
+        "acc_norm_stderr,none": 0.0086
+      },
+      "gsm8k": {
+        "alias": "gsm8k",
+        "exact_match,strict-match": 0.8317,
+        "exact_match_stderr,strict-match": 0.0103,
+        "exact_match,flexible-extract": 0.8324,
+        "exact_match_stderr,flexible-extract": 0.0103
+      },
+      "hellaswag": {
+        "alias": "hellaswag",
+        "acc,none": 0.5999,
+        "acc_stderr,none": 0.0049,
+        "acc_norm,none": 0.7893,
+        "acc_norm_stderr,none": 0.0041
+      },
+      "mmlu": {
+        "acc,none": 0.7178,
+        "acc_stderr,none": 0.0035,
+        "alias": "mmlu"
+      },
+      "mmlu_humanities": {
+        "acc,none": 0.6278,
+        "acc_stderr,none": 0.0064,
+        "alias": " - humanities"
+      },
+      "mmlu_formal_logic": {
+        "alias": "  - formal_logic",
+        "acc,none": 0.5635,
+        "acc_stderr,none": 0.0444
+      },
+      "mmlu_high_school_european_history": {
+        "alias": "  - high_school_european_history",
+        "acc,none": 0.8364,
+        "acc_stderr,none": 0.0289
+      },
+      "mmlu_high_school_us_history": {
+        "alias": "  - high_school_us_history",
+        "acc,none": 0.8676,
+        "acc_stderr,none": 0.0238
+      },
+      "mmlu_high_school_world_history": {
+        "alias": "  - high_school_world_history",
+        "acc,none": 0.8734,
+        "acc_stderr,none": 0.0216
+      },
+      "mmlu_international_law": {
+        "alias": "  - international_law",
+        "acc,none": 0.8512,
+        "acc_stderr,none": 0.0325
+      },
+      "mmlu_jurisprudence": {
+        "alias": "  - jurisprudence",
+        "acc,none": 0.8333,
+        "acc_stderr,none": 0.036
+      },
+      "mmlu_logical_fallacies": {
+        "alias": "  - logical_fallacies",
+        "acc,none": 0.8221,
+        "acc_stderr,none": 0.03
+      },
+      "mmlu_moral_disputes": {
+        "alias": "  - moral_disputes",
+        "acc,none": 0.8064,
+        "acc_stderr,none": 0.0213
+      },
+      "mmlu_moral_scenarios": {
+        "alias": "  - moral_scenarios",
+        "acc,none": 0.2994,
+        "acc_stderr,none": 0.0153
+      },
+      "mmlu_philosophy": {
+        "alias": "  - philosophy",
+        "acc,none": 0.7781,
+        "acc_stderr,none": 0.0236
+      },
+      "mmlu_prehistory": {
+        "alias": "  - prehistory",
+        "acc,none": 0.8364,
+        "acc_stderr,none": 0.0206
+      },
+      "mmlu_professional_law": {
+        "alias": "  - professional_law",
+        "acc,none": 0.5391,
+        "acc_stderr,none": 0.0127
+      },
+      "mmlu_world_religions": {
+        "alias": "  - world_religions",
+        "acc,none": 0.8596,
+        "acc_stderr,none": 0.0266
+      },
+      "mmlu_other": {
+        "acc,none": 0.7679,
+        "acc_stderr,none": 0.0072,
+        "alias": " - other"
+      },
+      "mmlu_business_ethics": {
+        "alias": "  - business_ethics",
+        "acc,none": 0.75,
+        "acc_stderr,none": 0.0435
+      },
+      "mmlu_clinical_knowledge": {
+        "alias": "  - clinical_knowledge",
+        "acc,none": 0.7736,
+        "acc_stderr,none": 0.0258
+      },
+      "mmlu_college_medicine": {
+        "alias": "  - college_medicine",
+        "acc,none": 0.6879,
+        "acc_stderr,none": 0.0353
+      },
+      "mmlu_global_facts": {
+        "alias": "  - global_facts",
+        "acc,none": 0.42,
+        "acc_stderr,none": 0.0496
+      },
+      "mmlu_human_aging": {
+        "alias": "  - human_aging",
+        "acc,none": 0.7668,
+        "acc_stderr,none": 0.0284
+      },
+      "mmlu_management": {
+        "alias": "  - management",
+        "acc,none": 0.8932,
+        "acc_stderr,none": 0.0306
+      },
+      "mmlu_marketing": {
+        "alias": "  - marketing",
+        "acc,none": 0.9274,
+        "acc_stderr,none": 0.017
+      },
+      "mmlu_medical_genetics": {
+        "alias": "  - medical_genetics",
+        "acc,none": 0.87,
+        "acc_stderr,none": 0.0338
+      },
+      "mmlu_miscellaneous": {
+        "alias": "  - miscellaneous",
+        "acc,none": 0.8621,
+        "acc_stderr,none": 0.0123
+      },
+      "mmlu_nutrition": {
+        "alias": "  - nutrition",
+        "acc,none": 0.8039,
+        "acc_stderr,none": 0.0227
+      },
+      "mmlu_professional_accounting": {
+        "alias": "  - professional_accounting",
+        "acc,none": 0.5567,
+        "acc_stderr,none": 0.0296
+      },
+      "mmlu_professional_medicine": {
+        "alias": "  - professional_medicine",
+        "acc,none": 0.7794,
+        "acc_stderr,none": 0.0252
+      },
+      "mmlu_virology": {
+        "alias": "  - virology",
+        "acc,none": 0.5301,
+        "acc_stderr,none": 0.0389
+      },
+      "mmlu_social_sciences": {
+        "acc,none": 0.8248,
+        "acc_stderr,none": 0.0067,
+        "alias": " - social sciences"
+      },
+      "mmlu_econometrics": {
+        "alias": "  - econometrics",
+        "acc,none": 0.6316,
+        "acc_stderr,none": 0.0454
+      },
+      "mmlu_high_school_geography": {
+        "alias": "  - high_school_geography",
+        "acc,none": 0.8889,
+        "acc_stderr,none": 0.0224
+      },
+      "mmlu_high_school_government_and_politics": {
+        "alias": "  - high_school_government_and_politics",
+        "acc,none": 0.9378,
+        "acc_stderr,none": 0.0174
+      },
+      "mmlu_high_school_macroeconomics": {
+        "alias": "  - high_school_macroeconomics",
+        "acc,none": 0.7821,
+        "acc_stderr,none": 0.0209
+      },
+      "mmlu_high_school_microeconomics": {
+        "alias": "  - high_school_microeconomics",
+        "acc,none": 0.8866,
+        "acc_stderr,none": 0.0206
+      },
+      "mmlu_high_school_psychology": {
+        "alias": "  - high_school_psychology",
+        "acc,none": 0.8936,
+        "acc_stderr,none": 0.0132
+      },
+      "mmlu_human_sexuality": {
+        "alias": "  - human_sexuality",
+        "acc,none": 0.8168,
+        "acc_stderr,none": 0.0339
+      },
+      "mmlu_professional_psychology": {
+        "alias": "  - professional_psychology",
+        "acc,none": 0.7729,
+        "acc_stderr,none": 0.0169
+      },
+      "mmlu_public_relations": {
+        "alias": "  - public_relations",
+        "acc,none": 0.6909,
+        "acc_stderr,none": 0.0443
+      },
+      "mmlu_security_studies": {
+        "alias": "  - security_studies",
+        "acc,none": 0.7755,
+        "acc_stderr,none": 0.0267
+      },
+      "mmlu_sociology": {
+        "alias": "  - sociology",
+        "acc,none": 0.8507,
+        "acc_stderr,none": 0.0252
+      },
+      "mmlu_us_foreign_policy": {
+        "alias": "  - us_foreign_policy",
+        "acc,none": 0.89,
+        "acc_stderr,none": 0.0314
+      },
+      "mmlu_stem": {
+        "acc,none": 0.6984,
+        "acc_stderr,none": 0.0079,
+        "alias": " - stem"
+      },
+      "mmlu_abstract_algebra": {
+        "alias": "  - abstract_algebra",
+        "acc,none": 0.52,
+        "acc_stderr,none": 0.0502
+      },
+      "mmlu_anatomy": {
+        "alias": "  - anatomy",
+        "acc,none": 0.7111,
+        "acc_stderr,none": 0.0392
+      },
+      "mmlu_astronomy": {
+        "alias": "  - astronomy",
+        "acc,none": 0.8487,
+        "acc_stderr,none": 0.0292
+      },
+      "mmlu_college_biology": {
+        "alias": "  - college_biology",
+        "acc,none": 0.8264,
+        "acc_stderr,none": 0.0317
+      },
+      "mmlu_college_chemistry": {
+        "alias": "  - college_chemistry",
+        "acc,none": 0.54,
+        "acc_stderr,none": 0.0501
+      },
+      "mmlu_college_computer_science": {
+        "alias": "  - college_computer_science",
+        "acc,none": 0.7,
+        "acc_stderr,none": 0.0461
+      },
+      "mmlu_college_mathematics": {
+        "alias": "  - college_mathematics",
+        "acc,none": 0.51,
+        "acc_stderr,none": 0.0502
+      },
+      "mmlu_college_physics": {
+        "alias": "  - college_physics",
+        "acc,none": 0.5098,
+        "acc_stderr,none": 0.0497
+      },
+      "mmlu_computer_security": {
+        "alias": "  - computer_security",
+        "acc,none": 0.83,
+        "acc_stderr,none": 0.0378
+      },
+      "mmlu_conceptual_physics": {
+        "alias": "  - conceptual_physics",
+        "acc,none": 0.7404,
+        "acc_stderr,none": 0.0287
+      },
+      "mmlu_electrical_engineering": {
+        "alias": "  - electrical_engineering",
+        "acc,none": 0.6966,
+        "acc_stderr,none": 0.0383
+      },
+      "mmlu_elementary_mathematics": {
+        "alias": "  - elementary_mathematics",
+        "acc,none": 0.7302,
+        "acc_stderr,none": 0.0229
+      },
+      "mmlu_high_school_biology": {
+        "alias": "  - high_school_biology",
+        "acc,none": 0.8677,
+        "acc_stderr,none": 0.0193
+      },
+      "mmlu_high_school_chemistry": {
+        "alias": "  - high_school_chemistry",
+        "acc,none": 0.6601,
+        "acc_stderr,none": 0.0333
+      },
+      "mmlu_high_school_computer_science": {
+        "alias": "  - high_school_computer_science",
+        "acc,none": 0.87,
+        "acc_stderr,none": 0.0338
+      },
+      "mmlu_high_school_mathematics": {
+        "alias": "  - high_school_mathematics",
+        "acc,none": 0.5444,
+        "acc_stderr,none": 0.0304
+      },
+      "mmlu_high_school_physics": {
+        "alias": "  - high_school_physics",
+        "acc,none": 0.596,
+        "acc_stderr,none": 0.0401
+      },
+      "mmlu_high_school_statistics": {
+        "alias": "  - high_school_statistics",
+        "acc,none": 0.6852,
+        "acc_stderr,none": 0.0317
+      },
+      "mmlu_machine_learning": {
+        "alias": "  - machine_learning",
+        "acc,none": 0.625,
+        "acc_stderr,none": 0.046
+      },
+      "piqa": {
+        "alias": "piqa",
+        "acc,none": 0.7873,
+        "acc_stderr,none": 0.0095,
+        "acc_norm,none": 0.8003,
+        "acc_norm_stderr,none": 0.0093
+      },
+      "winogrande": {
+        "alias": "winogrande",
+        "acc,none": 0.7253,
+        "acc_stderr,none": 0.0125
+      },
+      "_avg_accuracy": 0.7351
+    },
+    "system_metrics": {
+      "vram_peak_mb": 18366.7
+    },
+    "eval_time_seconds": 2722.7,
+    "quant_time_seconds": 0.0
+  },
+  "env": {
+    "timestamp": "2026-02-14T10:25:53.726540",
+    "timestamp_utc": "2026-02-14T15:25:53.726547+00:00",
+    "hostname": "sev-cxl",
+    "os": "Linux 6.11.0-snp-host-68799c0277b2",
+    "python_version": "3.13.11 | packaged by Anaconda, Inc. | (main, Dec 10 2025, 21:28:48) [GCC 14.3.0]",
+    "git": {
+      "commit_hash": null,
+      "branch": null,
+      "is_dirty": null
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA H200 NVL",
+        "memory_total_mb": 143771,
+        "driver_version": "580.95.05",
+        "compute_capability": "9.0"
+      }
+    ],
+    "cuda": {
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "cudnn_version": "91002",
+      "torch_cuda_arch_list": null
+    },
+    "packages": {
+      "torch": "2.10.0+cu128",
+      "transformers": "5.1.0",
+      "datasets": "4.5.0",
+      "accelerate": "1.12.0",
+      "auto-gptq": "not installed",
+      "autoawq": "not installed",
+      "smoothquant": "not installed",
+      "lm-eval": "0.4.11",
+      "vllm": "not installed",
+      "safetensors": "0.7.0",
+      "tokenizers": "0.22.2",
+      "bitsandbytes": "not installed",
+      "scipy": "1.17.0",
+      "numpy": "2.4.2"
+    }
+  },
+  "warnings": []
+}

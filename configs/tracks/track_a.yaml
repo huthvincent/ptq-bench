@@ -1,0 +1,29 @@
+# ==============================================================================
+# Track A: Weight-only W4A16 量化赛道
+# 只量化权重到 4-bit，激活保持 FP16/BF16
+# 这是 PTQ 研究中最热门的赛道
+# ==============================================================================
+
+name: "A"
+display_name: "Track A: Weight-only W4A16"
+description: "权重 4-bit 量化，激活不量化。覆盖 RTN/GPTQ/AWQ/OmniQuant/SpQR 等方法。"
+
+# 该赛道的量化约束
+constraints:
+  weight_bits: 4
+  activation_bits: 16              # 激活不量化
+  kv_quantize: false               # 不量化 KV Cache
+
+# 该赛道的评测任务
+eval:
+  ppl_datasets: ["wikitext2"]      # PPL 评测
+  lm_eval_tasks:                   # lm-eval-harness 任务
+    - "mmlu"
+    - "hellaswag"
+    - "winogrande"
+    - "arc_easy"
+    - "arc_challenge"
+    - "piqa"
+    - "gsm8k"
+  primary_metric: "avg_accuracy"   # 排行榜主排序指标
+  system_metrics: false            # Phase 2

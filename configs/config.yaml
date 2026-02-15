@@ -1,0 +1,68 @@
+# ==============================================================================
+# PTQ Benchmark 全局基础配置
+# 所有实验共享的环境、路径、超参设置
+# ==============================================================================
+
+# --- 环境信息（用于记录与打印，不影响运行逻辑） ---
+env:
+  conda_env: "ptq-bench"
+  python: "3.11"
+  cuda: "12.8"
+  torch: "2.10.0+cu128"
+  transformers: "4.52"
+  lm_eval: "0.4.11"
+  vllm: null                      # Phase 2 再填
+
+# --- 统一路径配置 ---
+paths:
+  project_root: "."                # 项目根目录（通常不需要改）
+  data_root: "/data2/zhu11/quant_source/data"   # 共享数据目录（多项目共用）
+  results_root: "results"          # 结果输出目录（项目内）
+  plots_root: "plots"              # 图表输出目录（项目内）
+  cache_dir: "/data2/zhu11/quant_source/models"  # HuggingFace 缓存目录
+  model_cache_dir: "/data2/zhu11/quant_source/models"  # 模型缓存目录（共享）
+
+# --- 通用超参 ---
+common_hyperparams:
+  seed: 42                         # 默认随机种子
+  max_seq_len: 2048                # 默认最大序列长度
+  dtype: "float16"                 # 默认数据类型 (float16 / bfloat16)
+  batch_size: 1                    # 默认 batch size（量化和评测）
+  eval_default_fewshot:            # 各评测任务默认 few-shot 数
+    mmlu: 5
+    gsm8k: 8
+    hellaswag: 10
+    winogrande: 5
+    arc_easy: 25
+    arc_challenge: 25
+    piqa: 0
+
+# --- 默认校准配置 ---
+default_calibration:
+  dataset: "wikitext2"             # wikitext2 / c4
+  num_samples: 128                 # 校准样本数
+  seq_len: 2048                    # 校准序列长度
+  packing: true                    # 是否使用 token packing
+  seed: 42                         # 校准数据采样种子
+
+# --- 默认评测配置 ---
+default_eval:
+  core_quality:                    # 核心质量评测
+    ppl_datasets: ["wikitext2"]    # PPL 评测数据集
+    lm_eval_tasks:                 # lm-eval-harness 任务列表
+      - "mmlu"
+      - "hellaswag"
+      - "winogrande"
+      - "arc_easy"
+      - "arc_challenge"
+      - "piqa"
+      - "gsm8k"
+  system_metrics:                  # 系统指标（Phase 2）
+    enabled: false
+    batch_sizes: [1, 8, 32]
+    prompt_lens: [128, 512, 2048]
+    gen_lens: [128, 256]
+  long_context:                    # 长上下文评测（Track C，Phase 2）
+    enabled: false
+    max_seq_len: 32768
+    tasks: ["longbench"]

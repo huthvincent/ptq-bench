@@ -1,0 +1,16 @@
+# ==============================================================================
+# Mistral 7B v0.3 模型配置
+# 高效的 7B 参数模型，适合快速验证量化方法
+# ==============================================================================
+
+name: "mistral-7b"
+model_id: "mistralai/Mistral-7B-v0.3"
+dtype: "bfloat16"
+max_seq_len: 32768
+trust_remote_code: false
+revision: null
+
+tokenizer_id: null
+adapter: null
+attn_implementation: null
+model_kwargs: {}

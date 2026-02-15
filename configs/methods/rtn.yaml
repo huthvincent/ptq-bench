@@ -1,0 +1,21 @@
+# ==============================================================================
+# RTN (Round-To-Nearest) — 最简单的权重量化 baseline
+# 直接对权重做 round-to-nearest，不做任何优化
+# ==============================================================================
+
+name: "rtn"
+display_name: "RTN (Round-To-Nearest)"
+supported_tracks: ["A"]
+library: "transformers"            # 用 transformers 内置的量化逻辑
+wrapper: "rtn"
+
+# 量化参数
+weight:
+  w_bits: 4
+  group_size: 128
+  granularity: "per_group"         # per_group / per_channel
+  scheme: "symmetric"              # symmetric / asymmetric
+
+# RTN 不做校准优化（但仍需加载模型权重）
+calibration:
+  required: false

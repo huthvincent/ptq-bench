@@ -1,0 +1,28 @@
+# ==============================================================================
+# AWQ — Activation-aware Weight Quantization
+# 通过激活值分布保护重要权重通道，W4A16 SOTA 方法之一
+# ==============================================================================
+
+name: "awq"
+display_name: "AWQ"
+supported_tracks: ["A"]
+library: "autoawq"                  # 依赖 autoawq 库
+wrapper: "awq"
+
+# 量化参数
+weight:
+  w_bits: 4
+  group_size: 128
+  granularity: "per_group"
+  scheme: "asymmetric"
+  zero_point: true                 # AWQ 默认使用 asymmetric + zero point
+  version: "gemm"                  # gemm / gemv / marlin
+
+# 校准设置
+calibration:
+  required: true
+  dataset: "wikitext2"
+  num_samples: 128
+  seq_len: 2048
+  packing: true
+  seed: 42

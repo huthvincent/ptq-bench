@@ -1,0 +1,29 @@
+# ==============================================================================
+# Track C: KV Cache 量化赛道
+# 量化 Key/Value Cache 以降低长上下文推理的显存占用
+# 适用于 KIVI、KVQuant 等方法
+# ==============================================================================
+
+name: "C"
+display_name: "Track C: KV Cache Quantization"
+description: "量化 KV Cache 以节省长上下文推理的显存。覆盖 KIVI、KVQuant 等方法。"
+
+constraints:
+  weight_bits: 16                  # 权重不量化
+  activation_bits: 16              # 激活不量化
+  kv_quantize: true                # 量化 KV Cache
+  kv_bits_default: 4               # KV 默认量化位数
+
+eval:
+  ppl_datasets: ["wikitext2"]
+  lm_eval_tasks:
+    - "mmlu"
+    - "hellaswag"
+    - "winogrande"
+  primary_metric: "avg_accuracy"
+  system_metrics: false
+  # Phase 2: 长上下文评测
+  long_context:
+    enabled: false                 # Phase 2 启用
+    max_seq_len: 32768
+    tasks: ["longbench"]

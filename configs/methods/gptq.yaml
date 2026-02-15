@@ -1,0 +1,28 @@
+# ==============================================================================
+# GPTQ — 基于二阶信息的权重量化
+# 使用 Hessian 矩阵优化量化误差，是 W4A16 的强 baseline
+# ==============================================================================
+
+name: "gptq"
+display_name: "GPTQ"
+supported_tracks: ["A"]
+library: "auto-gptq"               # 依赖 auto-gptq 库
+wrapper: "gptq"
+
+# 量化参数
+weight:
+  w_bits: 4
+  group_size: 128
+  granularity: "per_group"
+  scheme: "symmetric"
+  desc_act: false                  # 是否按激活值大小排序列（true 更准但更慢）
+  damp_percent: 0.01               # Hessian 对角线阻尼比例
+
+# 校准设置
+calibration:
+  required: true
+  dataset: "wikitext2"
+  num_samples: 128
+  seq_len: 2048
+  packing: true
+  seed: 42

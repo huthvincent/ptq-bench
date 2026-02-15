@@ -1,0 +1,199 @@
+{
+  "meta": {
+    "filename": "20260214_093656__qwen2.5-7b__fp16__trackA",
+    "timestamp": "2026-02-14T09:36:56.984094",
+    "script": "scripts/run_one.py",
+    "cli_args": "scripts/run_one.py --model qwen2.5-7b --method fp16 --track A",
+    "model": "qwen2.5-7b",
+    "method": "fp16",
+    "track": "A"
+  },
+  "config": {
+    "env": {
+      "conda_env": "ptq-bench",
+      "python": "3.11",
+      "cuda": "12.8",
+      "torch": "2.10.0+cu128",
+      "transformers": "4.52",
+      "lm_eval": "0.4.11",
+      "vllm": null
+    },
+    "paths": {
+      "project_root": "/data2/zhu11/ptq-bench",
+      "data_root": "/data2/zhu11/quant_source/data",
+      "results_root": "/data2/zhu11/ptq-bench/results",
+      "plots_root": "/data2/zhu11/ptq-bench/plots",
+      "cache_dir": "/data2/zhu11/quant_source/models",
+      "model_cache_dir": "/data2/zhu11/quant_source/models"
+    },
+    "common_hyperparams": {
+      "seed": 42,
+      "max_seq_len": 2048,
+      "dtype": "float16",
+      "batch_size": 1,
+      "eval_default_fewshot": {
+        "mmlu": 5,
+        "gsm8k": 8,
+        "hellaswag": 10,
+        "winogrande": 5,
+        "arc_easy": 25,
+        "arc_challenge": 25,
+        "piqa": 0
+      }
+    },
+    "default_calibration": {
+      "dataset": "wikitext2",
+      "num_samples": 128,
+      "seq_len": 2048,
+      "packing": true,
+      "seed": 42
+    },
+    "default_eval": {
+      "core_quality": {
+        "ppl_datasets": [
+          "wikitext2"
+        ],
+        "lm_eval_tasks": [
+          "mmlu",
+          "hellaswag",
+          "winogrande",
+          "arc_easy",
+          "arc_challenge",
+          "piqa",
+          "gsm8k"
+        ]
+      },
+      "system_metrics": {
+        "enabled": false,
+        "batch_sizes": [
+          1,
+          8,
+          32
+        ],
+        "prompt_lens": [
+          128,
+          512,
+          2048
+        ],
+        "gen_lens": [
+          128,
+          256
+        ]
+      },
+      "long_context": {
+        "enabled": false,
+        "max_seq_len": 32768,
+        "tasks": [
+          "longbench"
+        ]
+      }
+    },
+    "name": "fp16",
+    "display_name": "FP16 (Baseline)",
+    "description": "权重 4-bit 量化，激活不量化。覆盖 RTN/GPTQ/AWQ/OmniQuant/SpQR 等方法。",
+    "constraints": {
+      "weight_bits": 4,
+      "activation_bits": 16,
+      "kv_quantize": false
+    },
+    "eval": {
+      "ppl_datasets": [
+        "wikitext2"
+      ],
+      "lm_eval_tasks": [
+        "mmlu",
+        "hellaswag",
+        "winogrande",
+        "arc_easy",
+        "arc_challenge",
+        "piqa",
+        "gsm8k"
+      ],
+      "primary_metric": "avg_accuracy",
+      "system_metrics": false
+    },
+    "supported_tracks": [
+      "A",
+      "B",
+      "C"
+    ],
+    "library": "transformers",
+    "wrapper": "fp16",
+    "quantize": false,
+    "calibration": {
+      "required": false
+    },
+    "model": {
+      "name": "qwen2.5-7b",
+      "model_id": "Qwen/Qwen2.5-7B",
+      "dtype": "bfloat16",
+      "max_seq_len": 131072,
+      "trust_remote_code": false,
+      "revision": null,
+      "tokenizer_id": null,
+      "adapter": null,
+      "attn_implementation": null,
+      "model_kwargs": {}
+    },
+    "track": "A"
+  },
+  "results": {
+    "ppl": {
+      "wikitext2": {
+        "ppl": 6.16,
+        "nll": 1.81808,
+        "num_windows": 291
+      }
+    },
+    "lm_eval": {},
+    "system_metrics": {
+      "vram_peak_mb": 18366.7
+    },
+    "eval_time_seconds": 22.0,
+    "quant_time_seconds": 0.0
+  },
+  "env": {
+    "timestamp": "2026-02-14T09:36:56.952724",
+    "timestamp_utc": "2026-02-14T14:36:56.952730+00:00",
+    "hostname": "sev-cxl",
+    "os": "Linux 6.11.0-snp-host-68799c0277b2",
+    "python_version": "3.13.11 | packaged by Anaconda, Inc. | (main, Dec 10 2025, 21:28:48) [GCC 14.3.0]",
+    "git": {
+      "commit_hash": null,
+      "branch": null,
+      "is_dirty": null
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA H200 NVL",
+        "memory_total_mb": 143771,
+        "driver_version": "580.95.05",
+        "compute_capability": "9.0"
+      }
+    ],
+    "cuda": {
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "cudnn_version": "91002",
+      "torch_cuda_arch_list": null
+    },
+    "packages": {
+      "torch": "2.10.0+cu128",
+      "transformers": "5.1.0",
+      "datasets": "4.5.0",
+      "accelerate": "1.12.0",
+      "auto-gptq": "not installed",
+      "autoawq": "not installed",
+      "smoothquant": "not installed",
+      "lm-eval": "0.4.11",
+      "vllm": "not installed",
+      "safetensors": "0.7.0",
+      "tokenizers": "0.22.2",
+      "bitsandbytes": "not installed",
+      "scipy": "1.17.0",
+      "numpy": "2.4.2"
+    }
+  },
+  "warnings": []
+}

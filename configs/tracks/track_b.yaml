@@ -1,0 +1,27 @@
+# ==============================================================================
+# Track B: W8A8 权重-激活联合量化赛道
+# 权重和激活都量化到 8-bit
+# 适用于 SmoothQuant 类方法，追求部署效率
+# ==============================================================================
+
+name: "B"
+display_name: "Track B: W8A8"
+description: "权重 8-bit + 激活 8-bit 联合量化。覆盖 SmoothQuant 等方法。"
+
+constraints:
+  weight_bits: 8
+  activation_bits: 8
+  kv_quantize: false
+
+eval:
+  ppl_datasets: ["wikitext2"]
+  lm_eval_tasks:
+    - "mmlu"
+    - "hellaswag"
+    - "winogrande"
+    - "arc_easy"
+    - "arc_challenge"
+    - "piqa"
+    - "gsm8k"
+  primary_metric: "avg_accuracy"
+  system_metrics: false

@@ -1,0 +1,19 @@
+name: "qwen2.5-7b"
+model_id: "Qwen/Qwen2.5-7B"
+
+# --- 模型参数 ---
+dtype: "bfloat16"                     # Qwen2.5 推荐 bfloat16
+max_seq_len: 131072                   # 支持 128K 上下文
+trust_remote_code: false              # Qwen2.5 不需要
+
+# --- 可选参数 ---
+revision: null                        # 使用最新版本
+tokenizer_id: null                    # 使用模型自带的 tokenizer
+adapter: null
+attn_implementation: null             # 默认使用 flash_attention_2（如果可用）
+model_kwargs: {}
+
+# 预量化模型 ID（用于加载 HuggingFace Hub 上的预量化模型）
+pretrained_quant_models:
+  awq: "Qwen/Qwen2.5-7B-Instruct-AWQ"
+  gptq: "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4"

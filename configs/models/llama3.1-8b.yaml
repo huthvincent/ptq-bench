@@ -1,0 +1,17 @@
+# ==============================================================================
+# Meta Llama 3.1 8B 模型配置
+# 经典的中等规模 LLM，量化 benchmark 的标准模型
+# ==============================================================================
+
+name: "llama3.1-8b"
+model_id: "meta-llama/Llama-3.1-8B"
+dtype: "bfloat16"
+max_seq_len: 131072
+trust_remote_code: false
+revision: null                    # 使用最新版本，experiments 里可以钉死
+
+# 可选的额外参数
+tokenizer_id: null                # 与 model_id 相同
+adapter: null                     # 不需要特殊适配器
+attn_implementation: null         # 自动选择（sdpa / flash_attention_2）
+model_kwargs: {}
