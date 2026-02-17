@@ -10,6 +10,11 @@ KIVI — Tuning-free Asymmetric 2-bit KV Cache Quantization
 - 未凑满 group 的残余 token 保持 FP16
 - 免校准，运行时在线量化
 
+修复说明 (2026-02-17):
+  Transformers v5.x 的 Attention 不再通过 outputs[2] 返回 past_key_values，
+  而是通过 DynamicCache.layers[i].update() 就地管理 KV Cache。
+  因此将量化逻辑从 monkey-patch attention forward 迁移到自定义 CacheLayer。
+
 参考: Zirui Liu et al., "KIVI: A Tuning-Free Asymmetric 2bit Quantization
 for KV Cache", ICML 2024.
 """
@@ -19,209 +24,256 @@ import torch.nn as nn
 from src.registry import register
 from src.methods.base import BaseQuantMethod
 from typing import Any
+from transformers.cache_utils import DynamicLayer, DynamicCache
 
+
+# ──────────────────────────────────────────────
+# 量化/反量化工具函数
+# ──────────────────────────────────────────────
 
 def _asymmetric_quantize(tensor: torch.Tensor, bits: int, dim: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     沿指定维度做非对称均匀量化。
 
     公式: q = round((x - zero_point) / scale), scale = (max - min) / (2^bits - 1)
-
-    参数:
-        tensor: 待量化 tensor
-        bits: 量化位宽 (2 or 4)
-        dim: 量化维度 (沿哪个维度计算 min/max)
-
-    返回:
-        tuple: (quantized_int, scale, zero_point)
     """
     qmin = 0
-    qmax = (1 << bits) - 1  # 2-bit: 0~3, 4-bit: 0~15
+    qmax = (1 << bits) - 1
 
-    # 沿指定维度计算 min/max
     t_min = tensor.amin(dim=dim, keepdim=True)
     t_max = tensor.amax(dim=dim, keepdim=True)
-
-    # 防止 min == max (常量 tensor)
     t_range = (t_max - t_min).clamp(min=1e-8)
 
     scale = t_range / qmax
     zero_point = t_min
 
-    # 量化
     q = ((tensor - zero_point) / scale).round().clamp(qmin, qmax).to(torch.uint8)
-
     return q, scale, zero_point
 
 
 def _asymmetric_dequantize(q: torch.Tensor, scale: torch.Tensor, zero_point: torch.Tensor,
                            dtype: torch.dtype) -> torch.Tensor:
-    """
-    反量化: x_hat = q * scale + zero_point
-    """
+    """反量化: x_hat = q * scale + zero_point"""
     return q.to(dtype) * scale + zero_point
 
 
-class KiviKVCache:
-    """
-    KIVI KV Cache 管理器。
+# ──────────────────────────────────────────────
+# KiviCacheLayer — 子类化 DynamicLayer
+# ──────────────────────────────────────────────
 
-    Key: per-channel 量化 (沿 head_dim 维度)
-    Value: per-token 量化 (沿 seq_len 维度)
+class KiviCacheLayer(DynamicLayer):
+    """
+    KIVI 量化的 Cache Layer。
+
+    继承 DynamicLayer，覆写 update() 来拦截 KV states 并量化。
+    Key: per-channel 量化 (沿 head_dim 维度分组)
+    Value: per-token 量化 (沿 seq_len 维度分组)
     最近 residual_length 个 token 保持 FP16。
     """
 
     def __init__(self, key_bits: int = 2, value_bits: int = 2,
-                 group_size: int = 32, residual_length: int = 128):
-        """
-        参数:
-            key_bits: Key 量化位宽
-            value_bits: Value 量化位宽
-            group_size: 量化分组大小
-            residual_length: 保持 FP16 的最近 token 数
-        """
+                 residual_length: int = 128, layer_idx: int = 0):
+        super().__init__()
         self.key_bits = key_bits
         self.value_bits = value_bits
-        self.group_size = group_size
         self.residual_length = residual_length
+        self.layer_idx = layer_idx
+        self.cumulative_length = 0
 
-        # 已量化的 Key chunks: list of (q, scale, zero_point)
-        self.quantized_key_chunks: list[tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = []
-        self.quantized_value_chunks: list[tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = []
+        # 量化存储
+        self._quantized_key: tuple | None = None  # (q, scale, zero_point)
+        self._quantized_value: tuple | None = None
+        self._residual_key: torch.Tensor | None = None
+        self._residual_value: torch.Tensor | None = None
 
-        # 残余 (FP16)
-        self.residual_key: torch.Tensor | None = None
-        self.residual_value: torch.Tensor | None = None
+        # debug 统计
+        self._quantize_count = 0
 
-        # 统计
-        self.total_tokens_quantized = 0
-
-    def update(self, key: torch.Tensor, value: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def update(
+        self,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+        cache_kwargs: dict[str, Any] | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        接收完整 KV，量化历史部分，保留最近 residual_length 个 token 为 FP16。
+        拦截 KV 更新，量化历史部分，保留最近 residual_length 为 FP16。
 
-        参数:
-            key: [B, H, S, D]
-            value: [B, H, S, D]
-
-        返回:
-            tuple: (full_key, full_value) 重构后的完整 KV
+        流程:
+        1. 用 torch.cat 累积新 KV 到完整序列
+        2. 如果总长度 > residual_length → 分离为历史+残差
+        3. 历史部分量化 (Key per-channel, Value per-token)
+        4. 返回 dequant(历史) + 残差
         """
-        seq_len = key.size(2)
-        dtype = key.dtype
+        if not self.is_initialized:
+            self.lazy_initialization(key_states, value_states)
 
-        # 清空旧状态 (每次从完整 KV 重新量化)
-        self.quantized_key_chunks.clear()
-        self.quantized_value_chunks.clear()
-        self.total_tokens_quantized = 0
+        self.cumulative_length += key_states.shape[-2]
+        dtype = key_states.dtype
 
+        # Step 1: 累积完整 KV
+        if self._quantized_key is not None:
+            # 已有量化历史 → 拼接: dequant(历史) + 残差 + 新token
+            dequant_key = _asymmetric_dequantize(*self._quantized_key, dtype)
+            dequant_value = _asymmetric_dequantize(*self._quantized_value, dtype)
+            parts_key = [dequant_key]
+            parts_value = [dequant_value]
+            if self._residual_key is not None and self._residual_key.numel() > 0:
+                parts_key.append(self._residual_key)
+                parts_value.append(self._residual_value)
+            parts_key.append(key_states)
+            parts_value.append(value_states)
+            full_key = torch.cat(parts_key, dim=-2)
+            full_value = torch.cat(parts_value, dim=-2)
+        else:
+            # 首次或仅有残差
+            if self.keys.numel() > 0:
+                full_key = torch.cat([self.keys, key_states], dim=-2)
+                full_value = torch.cat([self.values, value_states], dim=-2)
+            else:
+                full_key = key_states
+                full_value = value_states
+
+        seq_len = full_key.shape[-2]
+
+        # Step 2: 决定是否量化
         if seq_len <= self.residual_length:
             # 序列太短，全部保持 FP16
-            self.residual_key = key
-            self.residual_value = value
-            return key, value
+            self.keys = full_key
+            self.values = full_value
+            self._quantized_key = None
+            self._quantized_value = None
+            self._residual_key = None
+            self._residual_value = None
+            return full_key, full_value
 
-        # 分离: 历史部分量化，最近部分保持 FP16
+        # Step 3: 分离历史 + 残差
         split_point = seq_len - self.residual_length
-        hist_key = key[:, :, :split_point, :]
-        hist_value = value[:, :, :split_point, :]
-        self.residual_key = key[:, :, split_point:, :].contiguous()
-        self.residual_value = value[:, :, split_point:, :].contiguous()
+        hist_key = full_key[:, :, :split_point, :].contiguous()
+        hist_value = full_value[:, :, :split_point, :].contiguous()
+        self._residual_key = full_key[:, :, split_point:, :].contiguous()
+        self._residual_value = full_value[:, :, split_point:, :].contiguous()
 
-        # 量化历史 Key: per-channel (沿 D 维度，即 dim=-1 的分组)
-        # KIVI 的 per-channel 意味着每个 channel 有独立的 scale/zp
-        # 对于 [B, H, T, D]，per-channel = 对每个 d 分别量化 T 维
-        # 实际操作: 沿 seq 维度 (dim=2) 计算统计量，这样每个 channel 有独立参数
-        q_key, s_key, z_key = _asymmetric_quantize(hist_key, self.key_bits, dim=2)
-        self.quantized_key_chunks.append((q_key, s_key, z_key))
+        # Step 4: 量化历史部分
+        # Key: per-channel (沿 seq 维度 dim=2 计算统计量，每个 channel 独立)
+        self._quantized_key = _asymmetric_quantize(hist_key, self.key_bits, dim=2)
+        # Value: per-token (沿 head_dim 维度 dim=3 计算统计量，每个 token 独立)
+        self._quantized_value = _asymmetric_quantize(hist_value, self.value_bits, dim=3)
 
-        # 量化历史 Value: per-token (沿 T 维度)
-        # per-token 意味着每个 token 有独立的 scale/zp
-        # 对于 [B, H, T, D]，per-token = 沿 head_dim 维度 (dim=3) 计算统计量
-        q_val, s_val, z_val = _asymmetric_quantize(hist_value, self.value_bits, dim=3)
-        self.quantized_value_chunks.append((q_val, s_val, z_val))
+        self._quantize_count += 1
 
-        self.total_tokens_quantized = split_point
+        # 清空 self.keys/values (历史已量化)
+        self.keys = torch.tensor([], dtype=dtype, device=key_states.device)
+        self.values = torch.tensor([], dtype=dtype, device=key_states.device)
 
-        # 重构
-        full_key = self._reconstruct_all(is_key=True, dtype=dtype)
-        full_value = self._reconstruct_all(is_key=False, dtype=dtype)
+        # Step 5: 重构返回
+        dequant_key = _asymmetric_dequantize(*self._quantized_key, dtype)
+        dequant_value = _asymmetric_dequantize(*self._quantized_value, dtype)
+        return_key = torch.cat([dequant_key, self._residual_key], dim=-2)
+        return_value = torch.cat([dequant_value, self._residual_value], dim=-2)
 
-        return full_key, full_value
+        return return_key, return_value
 
-    def _reconstruct_all(self, is_key: bool, dtype: torch.dtype) -> torch.Tensor:
-        """重构完整 KV (量化部分反量化 + 残余 FP16)。"""
-        chunks = self.quantized_key_chunks if is_key else self.quantized_value_chunks
-        residual = self.residual_key if is_key else self.residual_value
-
-        parts = []
-        for q, s, z in chunks:
-            parts.append(_asymmetric_dequantize(q, s, z, dtype))
-        if residual is not None:
-            parts.append(residual)
-
-        if not parts:
-            return torch.empty(0)
-        return torch.cat(parts, dim=2)
+    def get_seq_length(self) -> int:
+        return self.cumulative_length
 
 
-def _patch_attention_layers_kivi(model: nn.Module, kivi_config: dict) -> list[KiviKVCache]:
+class KiviQuantizedCache(DynamicCache):
     """
-    Monkey-patch Attention 层，植入 KIVI KV Cache。
-
-    兼容 LlamaAttention / Qwen2Attention / MistralAttention。
+    用 KiviCacheLayer 替代 DynamicLayer 的 DynamicCache。
     """
-    key_bits = kivi_config.get("key_bits", 2)
-    value_bits = kivi_config.get("value_bits", 2)
-    group_size = kivi_config.get("group_size", 32)
-    residual_length = kivi_config.get("residual_length", 128)
 
-    caches = []
-    patched_count = 0
+    def __init__(self, key_bits: int = 2, value_bits: int = 2,
+                 residual_length: int = 128, num_layers: int = 32,
+                 **kwargs):
+        # 构造 KiviCacheLayer 列表
+        layers = [
+            KiviCacheLayer(
+                key_bits=key_bits,
+                value_bits=value_bits,
+                residual_length=residual_length,
+                layer_idx=i,
+            )
+            for i in range(num_layers)
+        ]
+        # 用 Cache 基类初始化 (跳过 DynamicCache.__init__ 的 config 逻辑)
+        from transformers.cache_utils import Cache
+        Cache.__init__(self, layers=layers)
 
-    for name, module in model.named_modules():
-        module_type = type(module).__name__
-        if "Attention" not in module_type:
-            continue
-        if not (hasattr(module, "k_proj") and hasattr(module, "v_proj")):
-            continue
+    def get_quantize_stats(self) -> dict:
+        """返回量化统计信息。"""
+        stats = {}
+        for i, layer in enumerate(self.layers):
+            if isinstance(layer, KiviCacheLayer) and layer._quantize_count > 0:
+                stats[i] = {
+                    "quantize_count": layer._quantize_count,
+                    "cumulative_length": layer.cumulative_length,
+                }
+        return stats
 
-        cache = KiviKVCache(
-            key_bits=key_bits,
-            value_bits=value_bits,
-            group_size=group_size,
-            residual_length=residual_length,
-        )
-        caches.append(cache)
 
-        original_forward = module.forward
+# ──────────────────────────────────────────────
+# 注入机制: hook model.generate 传入自定义 cache
+# ──────────────────────────────────────────────
 
-        def make_patched_forward(orig_fwd, kivi_cache):
-            def patched_forward(*args, **kwargs):
-                outputs = orig_fwd(*args, **kwargs)
+def _inject_kivi_cache(model: nn.Module, kivi_config: dict):
+    """
+    Monkey-patch model.generate() 使其使用 KiviQuantizedCache。
 
-                if isinstance(outputs, tuple) and len(outputs) >= 3:
-                    attn_output = outputs[0]
-                    attn_weights = outputs[1]
-                    past_kv = outputs[2]
+    在 generate 调用时，如果没有显式传入 past_key_values，
+    则自动创建 KiviQuantizedCache 注入。
+    """
+    key_bits = kivi_config["key_bits"]
+    value_bits = kivi_config["value_bits"]
+    residual_length = kivi_config["residual_length"]
 
-                    if isinstance(past_kv, tuple) and len(past_kv) == 2:
-                        key_states, value_states = past_kv
-                        compressed_key, compressed_value = kivi_cache.update(
-                            key_states, value_states
-                        )
-                        outputs = (attn_output, attn_weights, (compressed_key, compressed_value))
+    # 获取层数
+    num_layers = model.config.num_hidden_layers
 
-                return outputs
-            return patched_forward
+    original_generate = model.generate
 
-        module.forward = make_patched_forward(original_forward, cache)
-        patched_count += 1
-        print(f"  ⚡ KIVI Patched: {name} ({module_type})")
+    def patched_generate(*args, **kwargs):
+        # 如果没有显式传入 cache，注入 KiviQuantizedCache
+        if "past_key_values" not in kwargs or kwargs["past_key_values"] is None:
+            cache = KiviQuantizedCache(
+                key_bits=key_bits,
+                value_bits=value_bits,
+                residual_length=residual_length,
+                num_layers=num_layers,
+            )
+            kwargs["past_key_values"] = cache
 
-    print(f"📋 KIVI: 共 patch 了 {patched_count} 个 Attention 层")
-    return caches
+        result = original_generate(*args, **kwargs)
 
+        # 打印量化统计 (首次调用时)
+        if hasattr(model, "_kivi_stats_printed"):
+            return result
+        model._kivi_stats_printed = True
+
+        if "past_key_values" in kwargs and isinstance(kwargs["past_key_values"], KiviQuantizedCache):
+            stats = kwargs["past_key_values"].get_quantize_stats()
+            if stats:
+                sample_layer = next(iter(stats.values()))
+                print(f"  📊 KIVI 量化确认: layer 0 量化了 {sample_layer['quantize_count']} 次, "
+                      f"累计 {sample_layer['cumulative_length']} tokens")
+            else:
+                print("  ⚠️ KIVI: 量化未触发 (序列可能太短)")
+
+        return result
+
+    model.generate = patched_generate
+
+    # 同时 hook model.forward / model.__call__ 以支持 PPL 评测 (非 generate 场景)
+    # PPL 评测直接调用 model(input_ids)，不经过 generate
+    # 但 PPL 评测每个窗口独立 forward，KV Cache 不跨窗口，所以量化也不需要
+    # 这里我们只需要确保 generate 场景下量化生效
+
+    print(f"  ✅ KIVI Cache 注入完成: {num_layers} 层, "
+          f"INT{key_bits}/INT{value_bits}, residual={residual_length}")
+
+
+# ──────────────────────────────────────────────
+# KiviMethod (注册到 registry)
+# ──────────────────────────────────────────────
 
 @register("kivi")
 class KiviMethod(BaseQuantMethod):
@@ -229,6 +281,7 @@ class KiviMethod(BaseQuantMethod):
     KIVI — Tuning-free Asymmetric 2-bit KV Cache Quantization.
 
     Key per-channel + Value per-token 非对称量化。
+    通过自定义 DynamicCache 实现，兼容 Transformers v5.x。
     """
 
     supported_tracks = ["C"]
@@ -251,12 +304,6 @@ class KiviMethod(BaseQuantMethod):
             "residual_length": residual_length,
         }
 
-        caches = _patch_attention_layers_kivi(model, kivi_config)
+        _inject_kivi_cache(model, kivi_config)
 
-        if not caches:
-            print("⚠️  未找到可 patch 的 Attention 层")
-        else:
-            print(f"✅ KIVI: {len(caches)} 个 Attention 层已启用 INT{key_bits}/INT{value_bits} KV 量化")
-
-        model._kivi_caches = caches
         return model

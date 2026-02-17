@@ -1,0 +1,246 @@
+{
+  "fp16_passkey": {
+    "accuracy": 1.0,
+    "depth_accuracy": {
+      "0.1": 1.0,
+      "0.5": 1.0
+    },
+    "total_correct": 20,
+    "total_tests": 20,
+    "context_length": 16384,
+    "num_keys": 10,
+    "details": [
+      {
+        "trial": 0,
+        "depth": 0.1,
+        "passkey": "93810",
+        "generated": "93810.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 0,
+        "depth": 0.5,
+        "passkey": "93810",
+        "generated": "93810.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.1,
+        "passkey": "24592",
+        "generated": "24592.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 1,
+        "depth": 0.5,
+        "passkey": "24592",
+        "generated": "24592.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 2,
+        "depth": 0.1,
+        "passkey": "13278",
+        "generated": "13278.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 2,
+        "depth": 0.5,
+        "passkey": "13278",
+        "generated": "13278.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 3,
+        "depth": 0.1,
+        "passkey": "46048",
+        "generated": "46048.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 3,
+        "depth": 0.5,
+        "passkey": "46048",
+        "generated": "46048.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 4,
+        "depth": 0.1,
+        "passkey": "42098",
+        "generated": "42098.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 4,
+        "depth": 0.5,
+        "passkey": "42098",
+        "generated": "42098.",
+        "correct": true,
+        "context_tokens": 15611
+      }
+    ]
+  },
+  "fp16_gen_ppl": {
+    "gen_ppl": 13.6611,
+    "num_samples": 3,
+    "prompt_length": 4096,
+    "gen_length": 2048,
+    "per_sample": [
+      {
+        "sample": 0,
+        "prompt_tokens": 4096,
+        "gen_tokens": 2048,
+        "gen_ppl": 6.677,
+        "generated_preview": ".\n\n       *       *       *       *       *\n\nThe first time the Pioneer was printed on the new web-p"
+      },
+      {
+        "sample": 1,
+        "prompt_tokens": 4096,
+        "gen_tokens": 2048,
+        "gen_ppl": 21.0707,
+        "generated_preview": " as she\nrejoined:--\n\n\"Good efening, Doctor. I am not so sure of that. I am afraid I am\ngetting a lit"
+      },
+      {
+        "sample": 2,
+        "prompt_tokens": 4096,
+        "gen_tokens": 2048,
+        "gen_ppl": 13.2355,
+        "generated_preview": ", handsome, and intelligent man, and had four wives, all of whom\nwere very beautiful. He was a great"
+      }
+    ]
+  },
+  "kivi_passkey": {
+    "accuracy": 0.0,
+    "depth_accuracy": {
+      "0.1": 0.0,
+      "0.5": 0.0
+    },
+    "total_correct": 0,
+    "total_tests": 20,
+    "context_length": 16384,
+    "num_keys": 10,
+    "details": [
+      {
+        "trial": 0,
+        "depth": 0.1,
+        "passkey": "93810",
+        "generated": "yellow. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 0,
+        "depth": 0.5,
+        "passkey": "93810",
+        "generated": "1. The sun is yellow. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.1,
+        "passkey": "24592",
+        "generated": "blue. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 1,
+        "depth": 0.5,
+        "passkey": "24592",
+        "generated": "2. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 2,
+        "depth": 0.1,
+        "passkey": "13278",
+        "generated": "yellow. The sun is yellow. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 2,
+        "depth": 0.5,
+        "passkey": "13278",
+        "generated": "The sky is blue. The sun is",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 3,
+        "depth": 0.1,
+        "passkey": "46048",
+        "generated": "4. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 3,
+        "depth": 0.5,
+        "passkey": "46048",
+        "generated": "blue. The sun is yellow. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 4,
+        "depth": 0.1,
+        "passkey": "42098",
+        "generated": "1. The sun is yellow. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 4,
+        "depth": 0.5,
+        "passkey": "42098",
+        "generated": "20. The sky is blue.",
+        "correct": false,
+        "context_tokens": 15611
+      }
+    ]
+  },
+  "kivi_gen_ppl": {
+    "gen_ppl": 13.6611,
+    "num_samples": 3,
+    "prompt_length": 4096,
+    "gen_length": 2048,
+    "per_sample": [
+      {
+        "sample": 0,
+        "prompt_tokens": 4096,
+        "gen_tokens": 2048,
+        "gen_ppl": 6.677,
+        "generated_preview": ", and the Minnesotian, and the Minnesotian, and the Minnesotian, and the Minnesotian, and the Minnes"
+      },
+      {
+        "sample": 1,
+        "prompt_tokens": 4096,
+        "gen_tokens": 2048,
+        "gen_ppl": 21.0707,
+        "generated_preview": " and the\nRudolphs, and the, and the, and the, and the, and the, and the, and the, and the, and the, "
+      },
+      {
+        "sample": 2,
+        "prompt_tokens": 4096,
+        "gen_tokens": 2048,
+        "gen_ppl": 13.2355,
+        "generated_preview": " and a very great, and a very great and a very great and a very\ngreat and a very great and a very gr"
+      }
+    ]
+  }
+}

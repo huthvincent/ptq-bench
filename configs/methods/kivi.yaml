@@ -12,7 +12,7 @@ kv:
   key_bits: 2        # Key 量化位宽
   value_bits: 2      # Value 量化位宽
   group_size: 32     # 量化分组大小
-  residual_length: 32   # 最近 N 个 token 保持 FP16 (降低以触发更多量化)
+  residual_length: 4    # 极端设置: 仅 4 个 token 保持 FP16
 
 calibration:
   required: false    # KIVI 免校准

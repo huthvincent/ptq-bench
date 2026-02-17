@@ -363,16 +363,16 @@ def evaluate_generation_ppl(model: Any, tokenizer: Any, config: dict) -> dict:
                 pad_token_id=tokenizer.eos_token_id,
             )
 
-        generated_ids = output_ids[0, prompt_length:]
-        generated_text = tokenizer.decode(generated_ids[:50], skip_special_tokens=True)
+        generated_ids = output_ids[0]  # 完整序列: prompt + generated
+        gen_token_count = generated_ids.shape[0] - prompt_length
+        generated_text = tokenizer.decode(generated_ids[prompt_length:prompt_length+50], skip_special_tokens=True)
 
-        # Step 2: 计算生成文本的 PPL (teacher-forcing)
-        # 用完整序列 (prompt + reference) 做一次 forward, 只计算 reference 部分的 NLL
-        full_input = torch.tensor(
-            [full_ids[:prompt_length + gen_length]], device=model.device
-        )
+        # Step 2: 计算生成序列的 PPL (teacher-forcing)
+        # 用 model.generate() 产出的完整序列 (prompt + 生成) 做一次 forward
+        # 只计算生成部分的 NLL — 这反映了 KV Cache 量化对生成质量的影响
+        full_input = generated_ids.unsqueeze(0)  # [1, prompt_length + gen_tokens]
         labels = full_input.clone()
-        labels[:, :prompt_length] = -100  # 只计算 reference 部分的 loss
+        labels[:, :prompt_length] = -100  # 只计算生成部分的 loss
 
         with torch.no_grad():
             outputs = model(full_input, labels=labels)
@@ -384,11 +384,11 @@ def evaluate_generation_ppl(model: Any, tokenizer: Any, config: dict) -> dict:
         gen_texts_info.append({
             "sample": i,
             "prompt_tokens": prompt_length,
-            "gen_tokens": len(generated_ids),
+            "gen_tokens": gen_token_count,
             "gen_ppl": round(ppl, 4),
             "generated_preview": generated_text[:100],
         })
-        print(f"  样本 {i}: gen_ppl={ppl:.4f}, gen_tokens={len(generated_ids)}")
+        print(f"  样本 {i}: gen_ppl={ppl:.4f}, gen_tokens={gen_token_count}")
 
     if not gen_ppls:
         return {"gen_ppl": None, "error": "no valid samples"}

@@ -1,0 +1,382 @@
+{
+  "fp16": {
+    "accuracy": 1.0,
+    "depth_accuracy": {
+      "0.1": 1.0,
+      "0.25": 1.0,
+      "0.5": 1.0,
+      "0.75": 1.0
+    },
+    "total_correct": 40,
+    "total_tests": 40,
+    "context_length": 16384,
+    "num_keys": 10,
+    "details": [
+      {
+        "trial": 0,
+        "depth": 0.1,
+        "passkey": "93810",
+        "generated": "93810.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 0,
+        "depth": 0.25,
+        "passkey": "93810",
+        "generated": "93810.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.5,
+        "passkey": "93810",
+        "generated": "93810.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.75,
+        "passkey": "93810",
+        "generated": "93810.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.1,
+        "passkey": "24592",
+        "generated": "24592.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 1,
+        "depth": 0.25,
+        "passkey": "24592",
+        "generated": "24592.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.5,
+        "passkey": "24592",
+        "generated": "24592.",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.75,
+        "passkey": "24592",
+        "generated": "24592. Remember it",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 2,
+        "depth": 0.1,
+        "passkey": "13278",
+        "generated": "13278.",
+        "correct": true,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 2,
+        "depth": 0.25,
+        "passkey": "13278",
+        "generated": "13278.",
+        "correct": true,
+        "context_tokens": 15611
+      }
+    ]
+  },
+  "kivi": {
+    "accuracy": 0.0,
+    "depth_accuracy": {
+      "0.1": 0.0,
+      "0.25": 0.0,
+      "0.5": 0.0,
+      "0.75": 0.0
+    },
+    "total_correct": 0,
+    "total_tests": 40,
+    "context_length": 16384,
+    "num_keys": 10,
+    "details": [
+      {
+        "trial": 0,
+        "depth": 0.1,
+        "passkey": "93810",
+        "generated": "yellow. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 0,
+        "depth": 0.25,
+        "passkey": "93810",
+        "generated": "1. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.5,
+        "passkey": "93810",
+        "generated": "1. The sun is yellow. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.75,
+        "passkey": "93810",
+        "generated": "100. The sky is blue",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.1,
+        "passkey": "24592",
+        "generated": "blue. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 1,
+        "depth": 0.25,
+        "passkey": "24592",
+        "generated": "2. The sun is yellow. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.5,
+        "passkey": "24592",
+        "generated": "2. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.75,
+        "passkey": "24592",
+        "generated": "12345678",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 2,
+        "depth": 0.1,
+        "passkey": "13278",
+        "generated": "yellow. The sun is yellow. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 2,
+        "depth": 0.25,
+        "passkey": "13278",
+        "generated": "1. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15611
+      }
+    ]
+  },
+  "kvquant": {
+    "accuracy": 0.1,
+    "depth_accuracy": {
+      "0.1": 0.1,
+      "0.25": 0.3,
+      "0.5": 0.0,
+      "0.75": 0.0
+    },
+    "total_correct": 4,
+    "total_tests": 40,
+    "context_length": 16384,
+    "num_keys": 10,
+    "details": [
+      {
+        "trial": 0,
+        "depth": 0.1,
+        "passkey": "93810",
+        "generated": "9. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 0,
+        "depth": 0.25,
+        "passkey": "93810",
+        "generated": "938. The passkey is",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.5,
+        "passkey": "93810",
+        "generated": "93. The sky is blue.",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.75,
+        "passkey": "93810",
+        "generated": "9. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.1,
+        "passkey": "24592",
+        "generated": "24581. The pass",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 1,
+        "depth": 0.25,
+        "passkey": "24592",
+        "generated": "24592. The sky",
+        "correct": true,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.5,
+        "passkey": "24592",
+        "generated": "24. The sky is blue.",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.75,
+        "passkey": "24592",
+        "generated": "3. The sky is blue. The",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 2,
+        "depth": 0.1,
+        "passkey": "13278",
+        "generated": "137. The grass is green",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 2,
+        "depth": 0.25,
+        "passkey": "13278",
+        "generated": "13. The sky is blue.",
+        "correct": false,
+        "context_tokens": 15611
+      }
+    ]
+  },
+  "forge": {
+    "accuracy": 0.0,
+    "depth_accuracy": {
+      "0.1": 0.0,
+      "0.25": 0.0,
+      "0.5": 0.0,
+      "0.75": 0.0
+    },
+    "total_correct": 0,
+    "total_tests": 40,
+    "context_length": 16384,
+    "num_keys": 10,
+    "details": [
+      {
+        "trial": 0,
+        "depth": 0.1,
+        "passkey": "93810",
+        "generated": "12345678",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 0,
+        "depth": 0.25,
+        "passkey": "93810",
+        "generated": "12345 12",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.5,
+        "passkey": "93810",
+        "generated": "12345 12",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 0,
+        "depth": 0.75,
+        "passkey": "93810",
+        "generated": "12345 12",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.1,
+        "passkey": "24592",
+        "generated": "12345678",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 1,
+        "depth": 0.25,
+        "passkey": "24592",
+        "generated": "12345 12",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.5,
+        "passkey": "24592",
+        "generated": "12345 12",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 1,
+        "depth": 0.75,
+        "passkey": "24592",
+        "generated": "12345 12",
+        "correct": false,
+        "context_tokens": 15611
+      },
+      {
+        "trial": 2,
+        "depth": 0.1,
+        "passkey": "13278",
+        "generated": "12345678",
+        "correct": false,
+        "context_tokens": 15632
+      },
+      {
+        "trial": 2,
+        "depth": 0.25,
+        "passkey": "13278",
+        "generated": "12345 12",
+        "correct": false,
+        "context_tokens": 15611
+      }
+    ]
+  }
+}

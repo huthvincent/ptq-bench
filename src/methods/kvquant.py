@@ -7,7 +7,9 @@ KVQuant — Sensitivity-Weighted KV Cache Quantization with Outlier Isolation
 - Value Cache: per-token 量化 (沿 token 维度计算统计量)
 - Dense-and-Sparse: 每个向量隔离 top-k 异常值，单独 FP16 存储
 - 反量化时: 低精度 dense 部分 + FP16 sparse 异常值
-- 需要校准数据计算最优 scale (本实现用 min/max 均匀量化简化)
+
+修复说明 (2026-02-17):
+  从 monkey-patch attention forward 迁移到自定义 CacheLayer。
 
 参考: Coleman Hooper et al., "KVQuant: Towards 10 Million Context Length
 LLM Inference with KV Cache Quantization", 2024.
@@ -18,7 +20,12 @@ import torch.nn as nn
 from src.registry import register
 from src.methods.base import BaseQuantMethod
 from typing import Any
+from transformers.cache_utils import DynamicLayer, DynamicCache
 
+
+# ──────────────────────────────────────────────
+# Dense-and-Sparse 量化/反量化
+# ──────────────────────────────────────────────
 
 def _quantize_with_outliers(tensor: torch.Tensor, bits: int, quant_dim: int,
                             num_outliers: int = 1) -> dict:
@@ -30,41 +37,23 @@ def _quantize_with_outliers(tensor: torch.Tensor, bits: int, quant_dim: int,
     2. 将 outlier 位置置零
     3. 对剩余部分做均匀量化 (dense)
     4. 分别存储 dense (INT) 和 sparse (FP16)
-
-    参数:
-        tensor: [B, H, T, D]
-        bits: 量化位宽
-        quant_dim: 量化维度 (Key: dim=2 per-channel, Value: dim=3 per-token)
-        num_outliers: 每个向量隔离的异常值个数
-
-    返回:
-        dict: {q, scale, zero_point, outlier_values, outlier_indices}
     """
     dtype = tensor.dtype
-    B, H, T, D = tensor.shape
     qmin = 0
     qmax = (1 << bits) - 1
 
+    outlier_vals = None
+    outlier_idx = None
+
     if num_outliers > 0:
-        # 找异常值: 沿 "非量化" 维度的每个向量中找 top-k
-        # 对于 per-channel Key (quant_dim=2): 每个 [B,H,:,d] 向量找 outlier → 太复杂
-        # 简化: 沿最后一个维度 (D) 找每个 token 的 outlier
         abs_tensor = tensor.abs()
-        # topk 沿 D 维度
-        _, outlier_idx = abs_tensor.topk(num_outliers, dim=-1)  # [B, H, T, k]
-
-        # 提取 outlier 值
-        outlier_vals = torch.gather(tensor, dim=-1, index=outlier_idx)  # [B, H, T, k]
-
-        # 创建 mask 并置零 outlier
+        _, outlier_idx = abs_tensor.topk(num_outliers, dim=-1)
+        outlier_vals = torch.gather(tensor, dim=-1, index=outlier_idx)
         dense_tensor = tensor.clone()
         dense_tensor.scatter_(dim=-1, index=outlier_idx, value=0.0)
     else:
         dense_tensor = tensor
-        outlier_vals = None
-        outlier_idx = None
 
-    # 均匀量化 dense 部分
     t_min = dense_tensor.amin(dim=quant_dim, keepdim=True)
     t_max = dense_tensor.amax(dim=quant_dim, keepdim=True)
     t_range = (t_max - t_min).clamp(min=1e-8)
@@ -75,35 +64,26 @@ def _quantize_with_outliers(tensor: torch.Tensor, bits: int, quant_dim: int,
     q = ((dense_tensor - zero_point) / scale).round().clamp(qmin, qmax).to(torch.uint8)
 
     return {
-        "q": q,
-        "scale": scale,
-        "zero_point": zero_point,
-        "outlier_values": outlier_vals,
-        "outlier_indices": outlier_idx,
+        "q": q, "scale": scale, "zero_point": zero_point,
+        "outlier_values": outlier_vals, "outlier_indices": outlier_idx,
     }
 
 
 def _dequantize_with_outliers(qdata: dict, dtype: torch.dtype) -> torch.Tensor:
-    """
-    反量化: dense 部分 + sparse outlier 加回。
-    """
-    q = qdata["q"]
-    scale = qdata["scale"]
-    zero_point = qdata["zero_point"]
-
-    # dense 反量化
-    result = q.to(dtype) * scale + zero_point
-
-    # 加回 outliers
+    """反量化: dense 部分 + sparse outlier 加回。"""
+    result = qdata["q"].to(dtype) * qdata["scale"] + qdata["zero_point"]
     if qdata["outlier_values"] is not None:
         result.scatter_(dim=-1, index=qdata["outlier_indices"], src=qdata["outlier_values"])
-
     return result
 
 
-class KVQuantCache:
+# ──────────────────────────────────────────────
+# KVQuantCacheLayer — 子类化 DynamicLayer
+# ──────────────────────────────────────────────
+
+class KVQuantCacheLayer(DynamicLayer):
     """
-    KVQuant KV Cache 管理器。
+    KVQuant 量化的 Cache Layer。
 
     Key: per-channel 量化 + outlier 隔离
     Value: per-token 量化 + outlier 隔离
@@ -111,134 +91,160 @@ class KVQuantCache:
     """
 
     def __init__(self, key_bits: int = 2, value_bits: int = 2,
-                 num_outliers: int = 1, residual_length: int = 128):
+                 num_outliers: int = 1, residual_length: int = 128,
+                 layer_idx: int = 0):
+        super().__init__()
         self.key_bits = key_bits
         self.value_bits = value_bits
         self.num_outliers = num_outliers
         self.residual_length = residual_length
+        self.layer_idx = layer_idx
+        self.cumulative_length = 0
 
-        self.quantized_key: dict | None = None
-        self.quantized_value: dict | None = None
-        self.residual_key: torch.Tensor | None = None
-        self.residual_value: torch.Tensor | None = None
-        self.total_tokens_quantized = 0
+        self._quantized_key: dict | None = None
+        self._quantized_value: dict | None = None
+        self._residual_key: torch.Tensor | None = None
+        self._residual_value: torch.Tensor | None = None
+        self._quantize_count = 0
 
-    def update(self, key: torch.Tensor, value: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        接收完整 KV，量化历史部分，保留最近 residual_length 个 token 为 FP16。
-        """
-        seq_len = key.size(2)
-        dtype = key.dtype
+    def update(
+        self,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+        cache_kwargs: dict[str, Any] | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if not self.is_initialized:
+            self.lazy_initialization(key_states, value_states)
 
-        self.quantized_key = None
-        self.quantized_value = None
-        self.total_tokens_quantized = 0
+        self.cumulative_length += key_states.shape[-2]
+        dtype = key_states.dtype
+
+        # 累积完整 KV
+        if self._quantized_key is not None:
+            dequant_key = _dequantize_with_outliers(self._quantized_key, dtype)
+            dequant_value = _dequantize_with_outliers(self._quantized_value, dtype)
+            parts_key = [dequant_key]
+            parts_value = [dequant_value]
+            if self._residual_key is not None and self._residual_key.numel() > 0:
+                parts_key.append(self._residual_key)
+                parts_value.append(self._residual_value)
+            parts_key.append(key_states)
+            parts_value.append(value_states)
+            full_key = torch.cat(parts_key, dim=-2)
+            full_value = torch.cat(parts_value, dim=-2)
+        else:
+            if self.keys.numel() > 0:
+                full_key = torch.cat([self.keys, key_states], dim=-2)
+                full_value = torch.cat([self.values, value_states], dim=-2)
+            else:
+                full_key = key_states
+                full_value = value_states
+
+        seq_len = full_key.shape[-2]
 
         if seq_len <= self.residual_length:
-            self.residual_key = key
-            self.residual_value = value
-            return key, value
+            self.keys = full_key
+            self.values = full_value
+            self._quantized_key = None
+            self._quantized_value = None
+            self._residual_key = None
+            self._residual_value = None
+            return full_key, full_value
 
+        # 分离历史 + 残差
         split_point = seq_len - self.residual_length
-        hist_key = key[:, :, :split_point, :]
-        hist_value = value[:, :, :split_point, :]
-        self.residual_key = key[:, :, split_point:, :].contiguous()
-        self.residual_value = value[:, :, split_point:, :].contiguous()
+        hist_key = full_key[:, :, :split_point, :].contiguous()
+        hist_value = full_value[:, :, :split_point, :].contiguous()
+        self._residual_key = full_key[:, :, split_point:, :].contiguous()
+        self._residual_value = full_value[:, :, split_point:, :].contiguous()
 
-        # Key: per-channel (quant_dim=2, 沿 seq 维度计算统计量 → 每个 channel 独立)
-        self.quantized_key = _quantize_with_outliers(
+        # 量化 (Key per-channel dim=2, Value per-token dim=3) + outlier 隔离
+        self._quantized_key = _quantize_with_outliers(
             hist_key, self.key_bits, quant_dim=2, num_outliers=self.num_outliers
         )
-
-        # Value: per-token (quant_dim=3, 沿 head_dim 维度计算统计量 → 每个 token 独立)
-        self.quantized_value = _quantize_with_outliers(
+        self._quantized_value = _quantize_with_outliers(
             hist_value, self.value_bits, quant_dim=3, num_outliers=self.num_outliers
         )
+        self._quantize_count += 1
 
-        self.total_tokens_quantized = split_point
+        self.keys = torch.tensor([], dtype=dtype, device=key_states.device)
+        self.values = torch.tensor([], dtype=dtype, device=key_states.device)
 
-        # 重构
-        full_key = self._reconstruct(is_key=True, dtype=dtype)
-        full_value = self._reconstruct(is_key=False, dtype=dtype)
+        # 重构返回
+        dequant_key = _dequantize_with_outliers(self._quantized_key, dtype)
+        dequant_value = _dequantize_with_outliers(self._quantized_value, dtype)
+        return_key = torch.cat([dequant_key, self._residual_key], dim=-2)
+        return_value = torch.cat([dequant_value, self._residual_value], dim=-2)
 
-        return full_key, full_value
+        return return_key, return_value
 
-    def _reconstruct(self, is_key: bool, dtype: torch.dtype) -> torch.Tensor:
-        qdata = self.quantized_key if is_key else self.quantized_value
-        residual = self.residual_key if is_key else self.residual_value
-
-        parts = []
-        if qdata is not None:
-            parts.append(_dequantize_with_outliers(qdata, dtype))
-        if residual is not None:
-            parts.append(residual)
-
-        if not parts:
-            return torch.empty(0)
-        return torch.cat(parts, dim=2)
+    def get_seq_length(self) -> int:
+        return self.cumulative_length
 
 
-def _patch_attention_layers_kvquant(model: nn.Module, kvq_config: dict) -> list[KVQuantCache]:
-    """
-    Monkey-patch Attention 层，植入 KVQuant Cache。
-    """
-    key_bits = kvq_config.get("key_bits", 2)
-    value_bits = kvq_config.get("value_bits", 2)
-    num_outliers = kvq_config.get("num_outliers", 1)
-    residual_length = kvq_config.get("residual_length", 128)
+class KVQuantQuantizedCache(DynamicCache):
+    """用 KVQuantCacheLayer 替代 DynamicLayer 的 DynamicCache。"""
 
-    caches = []
-    patched_count = 0
+    def __init__(self, key_bits: int = 2, value_bits: int = 2,
+                 num_outliers: int = 1, residual_length: int = 128,
+                 num_layers: int = 32, **kwargs):
+        layers = [
+            KVQuantCacheLayer(
+                key_bits=key_bits,
+                value_bits=value_bits,
+                num_outliers=num_outliers,
+                residual_length=residual_length,
+                layer_idx=i,
+            )
+            for i in range(num_layers)
+        ]
+        from transformers.cache_utils import Cache
+        Cache.__init__(self, layers=layers)
 
-    for name, module in model.named_modules():
-        module_type = type(module).__name__
-        if "Attention" not in module_type:
-            continue
-        if not (hasattr(module, "k_proj") and hasattr(module, "v_proj")):
-            continue
 
-        cache = KVQuantCache(
-            key_bits=key_bits,
-            value_bits=value_bits,
-            num_outliers=num_outliers,
-            residual_length=residual_length,
-        )
-        caches.append(cache)
+def _inject_kvquant_cache(model: nn.Module, kvq_config: dict):
+    """Monkey-patch model.generate() 使其使用 KVQuantQuantizedCache。"""
+    key_bits = kvq_config["key_bits"]
+    value_bits = kvq_config["value_bits"]
+    num_outliers = kvq_config["num_outliers"]
+    residual_length = kvq_config["residual_length"]
+    num_layers = model.config.num_hidden_layers
 
-        original_forward = module.forward
+    original_generate = model.generate
 
-        def make_patched_forward(orig_fwd, kvq_cache):
-            def patched_forward(*args, **kwargs):
-                outputs = orig_fwd(*args, **kwargs)
+    def patched_generate(*args, **kwargs):
+        if "past_key_values" not in kwargs or kwargs["past_key_values"] is None:
+            cache = KVQuantQuantizedCache(
+                key_bits=key_bits,
+                value_bits=value_bits,
+                num_outliers=num_outliers,
+                residual_length=residual_length,
+                num_layers=num_layers,
+            )
+            kwargs["past_key_values"] = cache
 
-                if isinstance(outputs, tuple) and len(outputs) >= 3:
-                    attn_output = outputs[0]
-                    attn_weights = outputs[1]
-                    past_kv = outputs[2]
+        result = original_generate(*args, **kwargs)
 
-                    if isinstance(past_kv, tuple) and len(past_kv) == 2:
-                        key_states, value_states = past_kv
-                        compressed_key, compressed_value = kvq_cache.update(
-                            key_states, value_states
-                        )
-                        outputs = (attn_output, attn_weights, (compressed_key, compressed_value))
+        if not hasattr(model, "_kvquant_stats_printed"):
+            model._kvquant_stats_printed = True
+            if isinstance(kwargs.get("past_key_values"), KVQuantQuantizedCache):
+                layer = kwargs["past_key_values"].layers[0]
+                if isinstance(layer, KVQuantCacheLayer) and layer._quantize_count > 0:
+                    print(f"  📊 KVQuant 量化确认: layer 0 量化了 {layer._quantize_count} 次, "
+                          f"累计 {layer.cumulative_length} tokens")
+                else:
+                    print("  ⚠️ KVQuant: 量化未触发")
 
-                return outputs
-            return patched_forward
+        return result
 
-        module.forward = make_patched_forward(original_forward, cache)
-        patched_count += 1
-        print(f"  ⚡ KVQuant Patched: {name} ({module_type})")
-
-    print(f"📋 KVQuant: 共 patch 了 {patched_count} 个 Attention 层")
-    return caches
+    model.generate = patched_generate
+    print(f"  ✅ KVQuant Cache 注入完成: {num_layers} 层, "
+          f"INT{key_bits}/INT{value_bits}, outliers={num_outliers}, residual={residual_length}")
 
 
 @register("kvquant")
 class KVQuantMethod(BaseQuantMethod):
-    """
-    KVQuant — Sensitivity-Weighted KV Cache Quantization with Outlier Isolation.
-    """
+    """KVQuant — Sensitivity-Weighted KV Cache Quantization with Outlier Isolation."""
 
     supported_tracks = ["C"]
 
@@ -260,12 +266,5 @@ class KVQuantMethod(BaseQuantMethod):
             "residual_length": residual_length,
         }
 
-        caches = _patch_attention_layers_kvquant(model, kvq_config)
-
-        if not caches:
-            print("⚠️  未找到可 patch 的 Attention 层")
-        else:
-            print(f"✅ KVQuant: {len(caches)} 个 Attention 层已启用 INT{key_bits}/INT{value_bits} + outlier 隔离")
-
-        model._kvquant_caches = caches
+        _inject_kvquant_cache(model, kvq_config)
         return model
