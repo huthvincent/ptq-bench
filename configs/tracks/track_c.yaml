@@ -15,7 +15,7 @@ constraints:
   kv_bits_default: 4               # KV 默认量化位数
 
 eval:
-  ppl_datasets: ["wikitext2"]
+  ppl_datasets: ["wikitext2", "longbench"]
   lm_eval_tasks:
     - "mmlu"
     - "hellaswag"
@@ -24,6 +24,6 @@ eval:
   system_metrics: false
   # Phase 2: 长上下文评测
   long_context:
-    enabled: false                 # Phase 2 启用
-    max_seq_len: 32768
+    enabled: true                  # Phase 2 已启用
+    max_seq_len: 4096
     tasks: ["longbench"]

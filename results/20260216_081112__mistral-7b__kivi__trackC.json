@@ -1,0 +1,530 @@
+{
+  "meta": {
+    "filename": "20260216_081112__mistral-7b__kivi__trackC",
+    "timestamp": "2026-02-16T08:11:12.737800",
+    "script": "scripts/run_one.py",
+    "cli_args": "scripts/run_one.py --model mistral-7b --method kivi --track C",
+    "model": "mistral-7b",
+    "method": "kivi",
+    "track": "C"
+  },
+  "config": {
+    "env": {
+      "conda_env": "ptq-bench",
+      "python": "3.11",
+      "cuda": "12.8",
+      "torch": "2.10.0+cu128",
+      "transformers": "4.52",
+      "lm_eval": "0.4.11",
+      "vllm": null
+    },
+    "paths": {
+      "project_root": "/data2/zhu11/ptq-bench",
+      "data_root": "/data2/zhu11/quant_source/data",
+      "results_root": "/data2/zhu11/ptq-bench/results",
+      "plots_root": "/data2/zhu11/ptq-bench/plots",
+      "cache_dir": "/data2/zhu11/quant_source/models",
+      "model_cache_dir": "/data2/zhu11/quant_source/models"
+    },
+    "common_hyperparams": {
+      "seed": 42,
+      "max_seq_len": 2048,
+      "dtype": "float16",
+      "batch_size": 1,
+      "eval_default_fewshot": {
+        "mmlu": 5,
+        "gsm8k": 8,
+        "hellaswag": 10,
+        "winogrande": 5,
+        "arc_easy": 25,
+        "arc_challenge": 25,
+        "piqa": 0
+      }
+    },
+    "default_calibration": {
+      "dataset": "wikitext2",
+      "num_samples": 128,
+      "seq_len": 2048,
+      "packing": true,
+      "seed": 42
+    },
+    "default_eval": {
+      "core_quality": {
+        "ppl_datasets": [
+          "wikitext2"
+        ],
+        "lm_eval_tasks": [
+          "mmlu",
+          "hellaswag",
+          "winogrande",
+          "arc_easy",
+          "arc_challenge",
+          "piqa",
+          "gsm8k"
+        ]
+      },
+      "system_metrics": {
+        "enabled": false,
+        "batch_sizes": [
+          1,
+          8,
+          32
+        ],
+        "prompt_lens": [
+          128,
+          512,
+          2048
+        ],
+        "gen_lens": [
+          128,
+          256
+        ]
+      },
+      "long_context": {
+        "enabled": false,
+        "max_seq_len": 32768,
+        "tasks": [
+          "longbench"
+        ]
+      }
+    },
+    "name": "kivi",
+    "display_name": "KIVI (INT2 KV Cache Quantization)",
+    "description": "量化 KV Cache 以节省长上下文推理的显存。覆盖 KIVI、KVQuant 等方法。",
+    "constraints": {
+      "weight_bits": 16,
+      "activation_bits": 16,
+      "kv_quantize": true,
+      "kv_bits_default": 4
+    },
+    "eval": {
+      "ppl_datasets": [
+        "wikitext2"
+      ],
+      "lm_eval_tasks": [
+        "mmlu",
+        "hellaswag",
+        "winogrande"
+      ],
+      "primary_metric": "avg_accuracy",
+      "system_metrics": false,
+      "long_context": {
+        "enabled": false,
+        "max_seq_len": 32768,
+        "tasks": [
+          "longbench"
+        ]
+      }
+    },
+    "supported_tracks": [
+      "C"
+    ],
+    "library": "transformers",
+    "wrapper": "kivi",
+    "kv": {
+      "key_bits": 2,
+      "value_bits": 2,
+      "group_size": 32,
+      "residual_length": 128
+    },
+    "calibration": {
+      "required": false
+    },
+    "model": {
+      "name": "mistral-7b",
+      "model_id": "mistralai/Mistral-7B-v0.3",
+      "dtype": "bfloat16",
+      "max_seq_len": 32768,
+      "trust_remote_code": false,
+      "revision": null,
+      "tokenizer_id": null,
+      "adapter": null,
+      "attn_implementation": null,
+      "model_kwargs": {}
+    },
+    "track": "C"
+  },
+  "results": {
+    "ppl": {
+      "wikitext2": {
+        "ppl": 4.7909,
+        "nll": 1.566708,
+        "num_windows": 325
+      }
+    },
+    "lm_eval": {
+      "hellaswag": {
+        "alias": "hellaswag",
+        "acc,none": 0.6115,
+        "acc_stderr,none": 0.0049,
+        "acc_norm,none": 0.8063,
+        "acc_norm_stderr,none": 0.0039
+      },
+      "mmlu": {
+        "acc,none": 0.5959,
+        "acc_stderr,none": 0.0039,
+        "alias": "mmlu"
+      },
+      "mmlu_humanities": {
+        "acc,none": 0.5345,
+        "acc_stderr,none": 0.0067,
+        "alias": " - humanities"
+      },
+      "mmlu_formal_logic": {
+        "alias": "  - formal_logic",
+        "acc,none": 0.373,
+        "acc_stderr,none": 0.0433
+      },
+      "mmlu_high_school_european_history": {
+        "alias": "  - high_school_european_history",
+        "acc,none": 0.7394,
+        "acc_stderr,none": 0.0343
+      },
+      "mmlu_high_school_us_history": {
+        "alias": "  - high_school_us_history",
+        "acc,none": 0.8137,
+        "acc_stderr,none": 0.0273
+      },
+      "mmlu_high_school_world_history": {
+        "alias": "  - high_school_world_history",
+        "acc,none": 0.7764,
+        "acc_stderr,none": 0.0271
+      },
+      "mmlu_international_law": {
+        "alias": "  - international_law",
+        "acc,none": 0.7355,
+        "acc_stderr,none": 0.0403
+      },
+      "mmlu_jurisprudence": {
+        "alias": "  - jurisprudence",
+        "acc,none": 0.6852,
+        "acc_stderr,none": 0.0449
+      },
+      "mmlu_logical_fallacies": {
+        "alias": "  - logical_fallacies",
+        "acc,none": 0.7485,
+        "acc_stderr,none": 0.0341
+      },
+      "mmlu_moral_disputes": {
+        "alias": "  - moral_disputes",
+        "acc,none": 0.659,
+        "acc_stderr,none": 0.0255
+      },
+      "mmlu_moral_scenarios": {
+        "alias": "  - moral_scenarios",
+        "acc,none": 0.2391,
+        "acc_stderr,none": 0.0143
+      },
+      "mmlu_philosophy": {
+        "alias": "  - philosophy",
+        "acc,none": 0.6881,
+        "acc_stderr,none": 0.0263
+      },
+      "mmlu_prehistory": {
+        "alias": "  - prehistory",
+        "acc,none": 0.679,
+        "acc_stderr,none": 0.026
+      },
+      "mmlu_professional_law": {
+        "alias": "  - professional_law",
+        "acc,none": 0.4511,
+        "acc_stderr,none": 0.0127
+      },
+      "mmlu_world_religions": {
+        "alias": "  - world_religions",
+        "acc,none": 0.8363,
+        "acc_stderr,none": 0.0284
+      },
+      "mmlu_other": {
+        "acc,none": 0.6836,
+        "acc_stderr,none": 0.0081,
+        "alias": " - other"
+      },
+      "mmlu_business_ethics": {
+        "alias": "  - business_ethics",
+        "acc,none": 0.6,
+        "acc_stderr,none": 0.0492
+      },
+      "mmlu_clinical_knowledge": {
+        "alias": "  - clinical_knowledge",
+        "acc,none": 0.6906,
+        "acc_stderr,none": 0.0285
+      },
+      "mmlu_college_medicine": {
+        "alias": "  - college_medicine",
+        "acc,none": 0.5954,
+        "acc_stderr,none": 0.0374
+      },
+      "mmlu_global_facts": {
+        "alias": "  - global_facts",
+        "acc,none": 0.39,
+        "acc_stderr,none": 0.049
+      },
+      "mmlu_human_aging": {
+        "alias": "  - human_aging",
+        "acc,none": 0.6726,
+        "acc_stderr,none": 0.0315
+      },
+      "mmlu_management": {
+        "alias": "  - management",
+        "acc,none": 0.8252,
+        "acc_stderr,none": 0.0376
+      },
+      "mmlu_marketing": {
+        "alias": "  - marketing",
+        "acc,none": 0.8376,
+        "acc_stderr,none": 0.0242
+      },
+      "mmlu_medical_genetics": {
+        "alias": "  - medical_genetics",
+        "acc,none": 0.69,
+        "acc_stderr,none": 0.0465
+      },
+      "mmlu_miscellaneous": {
+        "alias": "  - miscellaneous",
+        "acc,none": 0.7957,
+        "acc_stderr,none": 0.0144
+      },
+      "mmlu_nutrition": {
+        "alias": "  - nutrition",
+        "acc,none": 0.6961,
+        "acc_stderr,none": 0.0263
+      },
+      "mmlu_professional_accounting": {
+        "alias": "  - professional_accounting",
+        "acc,none": 0.4752,
+        "acc_stderr,none": 0.0298
+      },
+      "mmlu_professional_medicine": {
+        "alias": "  - professional_medicine",
+        "acc,none": 0.6801,
+        "acc_stderr,none": 0.0283
+      },
+      "mmlu_virology": {
+        "alias": "  - virology",
+        "acc,none": 0.506,
+        "acc_stderr,none": 0.0389
+      },
+      "mmlu_social_sciences": {
+        "acc,none": 0.6952,
+        "acc_stderr,none": 0.0081,
+        "alias": " - social sciences"
+      },
+      "mmlu_econometrics": {
+        "alias": "  - econometrics",
+        "acc,none": 0.4035,
+        "acc_stderr,none": 0.0462
+      },
+      "mmlu_high_school_geography": {
+        "alias": "  - high_school_geography",
+        "acc,none": 0.7828,
+        "acc_stderr,none": 0.0294
+      },
+      "mmlu_high_school_government_and_politics": {
+        "alias": "  - high_school_government_and_politics",
+        "acc,none": 0.8497,
+        "acc_stderr,none": 0.0258
+      },
+      "mmlu_high_school_macroeconomics": {
+        "alias": "  - high_school_macroeconomics",
+        "acc,none": 0.5974,
+        "acc_stderr,none": 0.0249
+      },
+      "mmlu_high_school_microeconomics": {
+        "alias": "  - high_school_microeconomics",
+        "acc,none": 0.6303,
+        "acc_stderr,none": 0.0314
+      },
+      "mmlu_high_school_psychology": {
+        "alias": "  - high_school_psychology",
+        "acc,none": 0.7945,
+        "acc_stderr,none": 0.0173
+      },
+      "mmlu_human_sexuality": {
+        "alias": "  - human_sexuality",
+        "acc,none": 0.7252,
+        "acc_stderr,none": 0.0392
+      },
+      "mmlu_professional_psychology": {
+        "alias": "  - professional_psychology",
+        "acc,none": 0.6062,
+        "acc_stderr,none": 0.0198
+      },
+      "mmlu_public_relations": {
+        "alias": "  - public_relations",
+        "acc,none": 0.6273,
+        "acc_stderr,none": 0.0463
+      },
+      "mmlu_security_studies": {
+        "alias": "  - security_studies",
+        "acc,none": 0.702,
+        "acc_stderr,none": 0.0293
+      },
+      "mmlu_sociology": {
+        "alias": "  - sociology",
+        "acc,none": 0.8408,
+        "acc_stderr,none": 0.0259
+      },
+      "mmlu_us_foreign_policy": {
+        "alias": "  - us_foreign_policy",
+        "acc,none": 0.82,
+        "acc_stderr,none": 0.0386
+      },
+      "mmlu_stem": {
+        "acc,none": 0.504,
+        "acc_stderr,none": 0.0086,
+        "alias": " - stem"
+      },
+      "mmlu_abstract_algebra": {
+        "alias": "  - abstract_algebra",
+        "acc,none": 0.31,
+        "acc_stderr,none": 0.0465
+      },
+      "mmlu_anatomy": {
+        "alias": "  - anatomy",
+        "acc,none": 0.563,
+        "acc_stderr,none": 0.0428
+      },
+      "mmlu_astronomy": {
+        "alias": "  - astronomy",
+        "acc,none": 0.6053,
+        "acc_stderr,none": 0.0398
+      },
+      "mmlu_college_biology": {
+        "alias": "  - college_biology",
+        "acc,none": 0.6944,
+        "acc_stderr,none": 0.0385
+      },
+      "mmlu_college_chemistry": {
+        "alias": "  - college_chemistry",
+        "acc,none": 0.44,
+        "acc_stderr,none": 0.0499
+      },
+      "mmlu_college_computer_science": {
+        "alias": "  - college_computer_science",
+        "acc,none": 0.54,
+        "acc_stderr,none": 0.0501
+      },
+      "mmlu_college_mathematics": {
+        "alias": "  - college_mathematics",
+        "acc,none": 0.38,
+        "acc_stderr,none": 0.0488
+      },
+      "mmlu_college_physics": {
+        "alias": "  - college_physics",
+        "acc,none": 0.3922,
+        "acc_stderr,none": 0.0486
+      },
+      "mmlu_computer_security": {
+        "alias": "  - computer_security",
+        "acc,none": 0.73,
+        "acc_stderr,none": 0.0446
+      },
+      "mmlu_conceptual_physics": {
+        "alias": "  - conceptual_physics",
+        "acc,none": 0.5191,
+        "acc_stderr,none": 0.0327
+      },
+      "mmlu_electrical_engineering": {
+        "alias": "  - electrical_engineering",
+        "acc,none": 0.5793,
+        "acc_stderr,none": 0.0411
+      },
+      "mmlu_elementary_mathematics": {
+        "alias": "  - elementary_mathematics",
+        "acc,none": 0.3783,
+        "acc_stderr,none": 0.025
+      },
+      "mmlu_high_school_biology": {
+        "alias": "  - high_school_biology",
+        "acc,none": 0.7645,
+        "acc_stderr,none": 0.0241
+      },
+      "mmlu_high_school_chemistry": {
+        "alias": "  - high_school_chemistry",
+        "acc,none": 0.4828,
+        "acc_stderr,none": 0.0352
+      },
+      "mmlu_high_school_computer_science": {
+        "alias": "  - high_school_computer_science",
+        "acc,none": 0.62,
+        "acc_stderr,none": 0.0488
+      },
+      "mmlu_high_school_mathematics": {
+        "alias": "  - high_school_mathematics",
+        "acc,none": 0.3222,
+        "acc_stderr,none": 0.0285
+      },
+      "mmlu_high_school_physics": {
+        "alias": "  - high_school_physics",
+        "acc,none": 0.3444,
+        "acc_stderr,none": 0.0388
+      },
+      "mmlu_high_school_statistics": {
+        "alias": "  - high_school_statistics",
+        "acc,none": 0.4815,
+        "acc_stderr,none": 0.0341
+      },
+      "mmlu_machine_learning": {
+        "alias": "  - machine_learning",
+        "acc,none": 0.4643,
+        "acc_stderr,none": 0.0473
+      },
+      "winogrande": {
+        "alias": "winogrande",
+        "acc,none": 0.7435,
+        "acc_stderr,none": 0.0123
+      },
+      "_avg_accuracy": 0.6131
+    },
+    "system_metrics": {
+      "vram_peak_mb": 15155.1
+    },
+    "eval_time_seconds": 733.7,
+    "quant_time_seconds": 0.0
+  },
+  "env": {
+    "timestamp": "2026-02-16T08:11:12.710665",
+    "timestamp_utc": "2026-02-16T13:11:12.710672+00:00",
+    "hostname": "sev-cxl",
+    "os": "Linux 6.11.0-snp-host-68799c0277b2",
+    "python_version": "3.13.11 | packaged by Anaconda, Inc. | (main, Dec 10 2025, 21:28:48) [GCC 14.3.0]",
+    "git": {
+      "commit_hash": "8a4fa89ea7ede243f8e885fdd0aabc8fbc6574cc",
+      "branch": "main",
+      "is_dirty": true
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA H200 NVL",
+        "memory_total_mb": 143771,
+        "driver_version": "580.95.05",
+        "compute_capability": "9.0"
+      }
+    ],
+    "cuda": {
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "cudnn_version": "91002",
+      "torch_cuda_arch_list": null
+    },
+    "packages": {
+      "torch": "2.10.0+cu128",
+      "transformers": "5.1.0",
+      "datasets": "4.5.0",
+      "accelerate": "1.12.0",
+      "auto-gptq": "not installed",
+      "autoawq": "not installed",
+      "smoothquant": "not installed",
+      "lm-eval": "0.4.11",
+      "vllm": "not installed",
+      "safetensors": "0.7.0",
+      "tokenizers": "0.22.2",
+      "bitsandbytes": "not installed",
+      "scipy": "1.17.0",
+      "numpy": "2.4.2"
+    }
+  },
+  "warnings": []
+}

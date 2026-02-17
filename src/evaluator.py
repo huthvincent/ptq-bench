@@ -119,6 +119,22 @@ def evaluate_ppl(model: Any, tokenizer: Any, dataset_name: str, config: dict) ->
                     break
                 texts.append(item["text"])
             text = "\n\n".join(texts)
+        elif dataset_name == "longbench":
+            # 长上下文 PPL：使用 pg19 长书籍文本
+            # pg19-test: 100 条长书籍，每条 ~250K chars
+            dataset = load_dataset("emozilla/pg19-test", split="test")
+            # 取前 10 条长文档拼接（足够产生大量 token）
+            texts = []
+            for i, item in enumerate(dataset):
+                if i >= 10:
+                    break
+                texts.append(item["text"])
+            text = "\n\n".join(texts)
+            # 使用更大的 max_seq_len
+            long_ctx = config.get("eval", {}).get("long_context", {})
+            if long_ctx.get("enabled", False):
+                max_seq_len = long_ctx.get("max_seq_len", 32768)
+                print(f"  📏 长上下文: 使用 max_seq_len={max_seq_len}")
         else:
             print(f"⚠️  未知数据集 {dataset_name}，跳过 PPL 评测")
             return {"ppl": None, "error": f"unknown dataset: {dataset_name}"}

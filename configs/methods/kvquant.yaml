@@ -1,0 +1,18 @@
+# KVQuant — Sensitivity-Weighted KV Cache Quantization
+# 参考: Coleman Hooper et al., 2024.
+
+name: kvquant
+display_name: "KVQuant (Sensitivity-Weighted KV Quantization)"
+
+supported_tracks: [C]
+library: transformers
+wrapper: kvquant
+
+kv:
+  key_bits: 2        # Key 量化位宽
+  value_bits: 2      # Value 量化位宽
+  num_outliers: 1    # 每个向量隔离的异常值个数
+  residual_length: 32   # 最近 N 个 token 保持 FP16 (降低以触发更多量化)
+
+calibration:
+  required: false    # 简化版不需要校准 (完整版需要)

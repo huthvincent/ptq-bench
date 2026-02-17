@@ -1,0 +1,540 @@
+{
+  "meta": {
+    "filename": "20260216_173417__qwen2.5-7b__forge__trackC",
+    "timestamp": "2026-02-16T17:34:17.760120",
+    "script": "scripts/run_one.py",
+    "cli_args": "scripts/run_one.py --model qwen2.5-7b --method forge --track C",
+    "model": "qwen2.5-7b",
+    "method": "forge",
+    "track": "C"
+  },
+  "config": {
+    "env": {
+      "conda_env": "ptq-bench",
+      "python": "3.11",
+      "cuda": "12.8",
+      "torch": "2.10.0+cu128",
+      "transformers": "4.52",
+      "lm_eval": "0.4.11",
+      "vllm": null
+    },
+    "paths": {
+      "project_root": "/data2/zhu11/ptq-bench",
+      "data_root": "/data2/zhu11/quant_source/data",
+      "results_root": "/data2/zhu11/ptq-bench/results",
+      "plots_root": "/data2/zhu11/ptq-bench/plots",
+      "cache_dir": "/data2/zhu11/quant_source/models",
+      "model_cache_dir": "/data2/zhu11/quant_source/models"
+    },
+    "common_hyperparams": {
+      "seed": 42,
+      "max_seq_len": 2048,
+      "dtype": "float16",
+      "batch_size": 1,
+      "eval_default_fewshot": {
+        "mmlu": 5,
+        "gsm8k": 8,
+        "hellaswag": 10,
+        "winogrande": 5,
+        "arc_easy": 25,
+        "arc_challenge": 25,
+        "piqa": 0
+      }
+    },
+    "default_calibration": {
+      "dataset": "wikitext2",
+      "num_samples": 128,
+      "seq_len": 2048,
+      "packing": true,
+      "seed": 42
+    },
+    "default_eval": {
+      "core_quality": {
+        "ppl_datasets": [
+          "wikitext2"
+        ],
+        "lm_eval_tasks": [
+          "mmlu",
+          "hellaswag",
+          "winogrande",
+          "arc_easy",
+          "arc_challenge",
+          "piqa",
+          "gsm8k"
+        ]
+      },
+      "system_metrics": {
+        "enabled": false,
+        "batch_sizes": [
+          1,
+          8,
+          32
+        ],
+        "prompt_lens": [
+          128,
+          512,
+          2048
+        ],
+        "gen_lens": [
+          128,
+          256
+        ]
+      },
+      "long_context": {
+        "enabled": false,
+        "max_seq_len": 32768,
+        "tasks": [
+          "longbench"
+        ]
+      }
+    },
+    "name": "forge",
+    "display_name": "FORGE (Fast On-chip Reconstruction of Generative Embeddings)",
+    "description": "量化 KV Cache 以节省长上下文推理的显存。覆盖 KIVI、KVQuant 等方法。",
+    "constraints": {
+      "weight_bits": 16,
+      "activation_bits": 16,
+      "kv_quantize": true,
+      "kv_bits_default": 4
+    },
+    "eval": {
+      "ppl_datasets": [
+        "wikitext2",
+        "longbench"
+      ],
+      "lm_eval_tasks": [
+        "mmlu",
+        "hellaswag",
+        "winogrande"
+      ],
+      "primary_metric": "avg_accuracy",
+      "system_metrics": false,
+      "long_context": {
+        "enabled": true,
+        "max_seq_len": 4096,
+        "tasks": [
+          "longbench"
+        ]
+      }
+    },
+    "supported_tracks": [
+      "C"
+    ],
+    "library": "transformers",
+    "wrapper": "forge",
+    "kv": {
+      "chunk_size": 16,
+      "energy_threshold": 0.95,
+      "min_rank": 2,
+      "max_rank": 32
+    },
+    "calibration": {
+      "required": false
+    },
+    "model": {
+      "name": "qwen2.5-7b",
+      "model_id": "Qwen/Qwen2.5-7B",
+      "dtype": "bfloat16",
+      "max_seq_len": 131072,
+      "trust_remote_code": false,
+      "revision": null,
+      "tokenizer_id": null,
+      "adapter": null,
+      "attn_implementation": null,
+      "model_kwargs": {},
+      "pretrained_quant_models": {
+        "awq": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+        "gptq": "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4"
+      }
+    },
+    "track": "C"
+  },
+  "results": {
+    "ppl": {
+      "wikitext2": {
+        "ppl": 6.1604,
+        "nll": 1.818134,
+        "num_windows": 291
+      },
+      "longbench": {
+        "ppl": 11.4011,
+        "nll": 2.433712,
+        "num_windows": 294
+      }
+    },
+    "lm_eval": {
+      "hellaswag": {
+        "alias": "hellaswag",
+        "acc,none": 0.6008,
+        "acc_stderr,none": 0.0049,
+        "acc_norm,none": 0.7895,
+        "acc_norm_stderr,none": 0.0041
+      },
+      "mmlu": {
+        "acc,none": 0.7184,
+        "acc_stderr,none": 0.0035,
+        "alias": "mmlu"
+      },
+      "mmlu_humanities": {
+        "acc,none": 0.6289,
+        "acc_stderr,none": 0.0064,
+        "alias": " - humanities"
+      },
+      "mmlu_formal_logic": {
+        "alias": "  - formal_logic",
+        "acc,none": 0.5635,
+        "acc_stderr,none": 0.0444
+      },
+      "mmlu_high_school_european_history": {
+        "alias": "  - high_school_european_history",
+        "acc,none": 0.8364,
+        "acc_stderr,none": 0.0289
+      },
+      "mmlu_high_school_us_history": {
+        "alias": "  - high_school_us_history",
+        "acc,none": 0.8775,
+        "acc_stderr,none": 0.023
+      },
+      "mmlu_high_school_world_history": {
+        "alias": "  - high_school_world_history",
+        "acc,none": 0.8734,
+        "acc_stderr,none": 0.0216
+      },
+      "mmlu_international_law": {
+        "alias": "  - international_law",
+        "acc,none": 0.843,
+        "acc_stderr,none": 0.0332
+      },
+      "mmlu_jurisprudence": {
+        "alias": "  - jurisprudence",
+        "acc,none": 0.8333,
+        "acc_stderr,none": 0.036
+      },
+      "mmlu_logical_fallacies": {
+        "alias": "  - logical_fallacies",
+        "acc,none": 0.8221,
+        "acc_stderr,none": 0.03
+      },
+      "mmlu_moral_disputes": {
+        "alias": "  - moral_disputes",
+        "acc,none": 0.8092,
+        "acc_stderr,none": 0.0212
+      },
+      "mmlu_moral_scenarios": {
+        "alias": "  - moral_scenarios",
+        "acc,none": 0.305,
+        "acc_stderr,none": 0.0154
+      },
+      "mmlu_philosophy": {
+        "alias": "  - philosophy",
+        "acc,none": 0.7781,
+        "acc_stderr,none": 0.0236
+      },
+      "mmlu_prehistory": {
+        "alias": "  - prehistory",
+        "acc,none": 0.8395,
+        "acc_stderr,none": 0.0204
+      },
+      "mmlu_professional_law": {
+        "alias": "  - professional_law",
+        "acc,none": 0.5372,
+        "acc_stderr,none": 0.0127
+      },
+      "mmlu_world_religions": {
+        "alias": "  - world_religions",
+        "acc,none": 0.8596,
+        "acc_stderr,none": 0.0266
+      },
+      "mmlu_other": {
+        "acc,none": 0.7679,
+        "acc_stderr,none": 0.0073,
+        "alias": " - other"
+      },
+      "mmlu_business_ethics": {
+        "alias": "  - business_ethics",
+        "acc,none": 0.75,
+        "acc_stderr,none": 0.0435
+      },
+      "mmlu_clinical_knowledge": {
+        "alias": "  - clinical_knowledge",
+        "acc,none": 0.7736,
+        "acc_stderr,none": 0.0258
+      },
+      "mmlu_college_medicine": {
+        "alias": "  - college_medicine",
+        "acc,none": 0.6936,
+        "acc_stderr,none": 0.0351
+      },
+      "mmlu_global_facts": {
+        "alias": "  - global_facts",
+        "acc,none": 0.44,
+        "acc_stderr,none": 0.0499
+      },
+      "mmlu_human_aging": {
+        "alias": "  - human_aging",
+        "acc,none": 0.7623,
+        "acc_stderr,none": 0.0286
+      },
+      "mmlu_management": {
+        "alias": "  - management",
+        "acc,none": 0.8835,
+        "acc_stderr,none": 0.0318
+      },
+      "mmlu_marketing": {
+        "alias": "  - marketing",
+        "acc,none": 0.9231,
+        "acc_stderr,none": 0.0175
+      },
+      "mmlu_medical_genetics": {
+        "alias": "  - medical_genetics",
+        "acc,none": 0.87,
+        "acc_stderr,none": 0.0338
+      },
+      "mmlu_miscellaneous": {
+        "alias": "  - miscellaneous",
+        "acc,none": 0.8595,
+        "acc_stderr,none": 0.0124
+      },
+      "mmlu_nutrition": {
+        "alias": "  - nutrition",
+        "acc,none": 0.8039,
+        "acc_stderr,none": 0.0227
+      },
+      "mmlu_professional_accounting": {
+        "alias": "  - professional_accounting",
+        "acc,none": 0.5674,
+        "acc_stderr,none": 0.0296
+      },
+      "mmlu_professional_medicine": {
+        "alias": "  - professional_medicine",
+        "acc,none": 0.7757,
+        "acc_stderr,none": 0.0253
+      },
+      "mmlu_virology": {
+        "alias": "  - virology",
+        "acc,none": 0.5301,
+        "acc_stderr,none": 0.0389
+      },
+      "mmlu_social_sciences": {
+        "acc,none": 0.8255,
+        "acc_stderr,none": 0.0067,
+        "alias": " - social sciences"
+      },
+      "mmlu_econometrics": {
+        "alias": "  - econometrics",
+        "acc,none": 0.614,
+        "acc_stderr,none": 0.0458
+      },
+      "mmlu_high_school_geography": {
+        "alias": "  - high_school_geography",
+        "acc,none": 0.8889,
+        "acc_stderr,none": 0.0224
+      },
+      "mmlu_high_school_government_and_politics": {
+        "alias": "  - high_school_government_and_politics",
+        "acc,none": 0.9378,
+        "acc_stderr,none": 0.0174
+      },
+      "mmlu_high_school_macroeconomics": {
+        "alias": "  - high_school_macroeconomics",
+        "acc,none": 0.7872,
+        "acc_stderr,none": 0.0208
+      },
+      "mmlu_high_school_microeconomics": {
+        "alias": "  - high_school_microeconomics",
+        "acc,none": 0.8908,
+        "acc_stderr,none": 0.0203
+      },
+      "mmlu_high_school_psychology": {
+        "alias": "  - high_school_psychology",
+        "acc,none": 0.8954,
+        "acc_stderr,none": 0.0131
+      },
+      "mmlu_human_sexuality": {
+        "alias": "  - human_sexuality",
+        "acc,none": 0.8092,
+        "acc_stderr,none": 0.0345
+      },
+      "mmlu_professional_psychology": {
+        "alias": "  - professional_psychology",
+        "acc,none": 0.7794,
+        "acc_stderr,none": 0.0168
+      },
+      "mmlu_public_relations": {
+        "alias": "  - public_relations",
+        "acc,none": 0.6818,
+        "acc_stderr,none": 0.0446
+      },
+      "mmlu_security_studies": {
+        "alias": "  - security_studies",
+        "acc,none": 0.7673,
+        "acc_stderr,none": 0.027
+      },
+      "mmlu_sociology": {
+        "alias": "  - sociology",
+        "acc,none": 0.8507,
+        "acc_stderr,none": 0.0252
+      },
+      "mmlu_us_foreign_policy": {
+        "alias": "  - us_foreign_policy",
+        "acc,none": 0.89,
+        "acc_stderr,none": 0.0314
+      },
+      "mmlu_stem": {
+        "acc,none": 0.6987,
+        "acc_stderr,none": 0.0079,
+        "alias": " - stem"
+      },
+      "mmlu_abstract_algebra": {
+        "alias": "  - abstract_algebra",
+        "acc,none": 0.53,
+        "acc_stderr,none": 0.0502
+      },
+      "mmlu_anatomy": {
+        "alias": "  - anatomy",
+        "acc,none": 0.7259,
+        "acc_stderr,none": 0.0385
+      },
+      "mmlu_astronomy": {
+        "alias": "  - astronomy",
+        "acc,none": 0.8421,
+        "acc_stderr,none": 0.0297
+      },
+      "mmlu_college_biology": {
+        "alias": "  - college_biology",
+        "acc,none": 0.8264,
+        "acc_stderr,none": 0.0317
+      },
+      "mmlu_college_chemistry": {
+        "alias": "  - college_chemistry",
+        "acc,none": 0.55,
+        "acc_stderr,none": 0.05
+      },
+      "mmlu_college_computer_science": {
+        "alias": "  - college_computer_science",
+        "acc,none": 0.69,
+        "acc_stderr,none": 0.0465
+      },
+      "mmlu_college_mathematics": {
+        "alias": "  - college_mathematics",
+        "acc,none": 0.54,
+        "acc_stderr,none": 0.0501
+      },
+      "mmlu_college_physics": {
+        "alias": "  - college_physics",
+        "acc,none": 0.5,
+        "acc_stderr,none": 0.0498
+      },
+      "mmlu_computer_security": {
+        "alias": "  - computer_security",
+        "acc,none": 0.84,
+        "acc_stderr,none": 0.0368
+      },
+      "mmlu_conceptual_physics": {
+        "alias": "  - conceptual_physics",
+        "acc,none": 0.7362,
+        "acc_stderr,none": 0.0288
+      },
+      "mmlu_electrical_engineering": {
+        "alias": "  - electrical_engineering",
+        "acc,none": 0.7034,
+        "acc_stderr,none": 0.0381
+      },
+      "mmlu_elementary_mathematics": {
+        "alias": "  - elementary_mathematics",
+        "acc,none": 0.7249,
+        "acc_stderr,none": 0.023
+      },
+      "mmlu_high_school_biology": {
+        "alias": "  - high_school_biology",
+        "acc,none": 0.8677,
+        "acc_stderr,none": 0.0193
+      },
+      "mmlu_high_school_chemistry": {
+        "alias": "  - high_school_chemistry",
+        "acc,none": 0.6601,
+        "acc_stderr,none": 0.0333
+      },
+      "mmlu_high_school_computer_science": {
+        "alias": "  - high_school_computer_science",
+        "acc,none": 0.86,
+        "acc_stderr,none": 0.0349
+      },
+      "mmlu_high_school_mathematics": {
+        "alias": "  - high_school_mathematics",
+        "acc,none": 0.5519,
+        "acc_stderr,none": 0.0303
+      },
+      "mmlu_high_school_physics": {
+        "alias": "  - high_school_physics",
+        "acc,none": 0.596,
+        "acc_stderr,none": 0.0401
+      },
+      "mmlu_high_school_statistics": {
+        "alias": "  - high_school_statistics",
+        "acc,none": 0.6759,
+        "acc_stderr,none": 0.0319
+      },
+      "mmlu_machine_learning": {
+        "alias": "  - machine_learning",
+        "acc,none": 0.6161,
+        "acc_stderr,none": 0.0462
+      },
+      "winogrande": {
+        "alias": "winogrande",
+        "acc,none": 0.7301,
+        "acc_stderr,none": 0.0125
+      },
+      "_avg_accuracy": 0.7377
+    },
+    "system_metrics": {
+      "vram_peak_mb": 22166.8
+    },
+    "eval_time_seconds": 2063.5,
+    "quant_time_seconds": 0.0
+  },
+  "env": {
+    "timestamp": "2026-02-16T17:34:17.733995",
+    "timestamp_utc": "2026-02-16T22:34:17.734001+00:00",
+    "hostname": "sev-cxl",
+    "os": "Linux 6.11.0-snp-host-68799c0277b2",
+    "python_version": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "git": {
+      "commit_hash": "8a4fa89ea7ede243f8e885fdd0aabc8fbc6574cc",
+      "branch": "main",
+      "is_dirty": true
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA H200 NVL",
+        "memory_total_mb": 143771,
+        "driver_version": "580.95.05",
+        "compute_capability": "9.0"
+      }
+    ],
+    "cuda": {
+      "cuda_available": true,
+      "cuda_version": "12.4",
+      "cudnn_version": "90100",
+      "torch_cuda_arch_list": null
+    },
+    "packages": {
+      "torch": "2.6.0+cu124",
+      "transformers": "5.1.0",
+      "datasets": "4.5.0",
+      "accelerate": "1.12.0",
+      "auto-gptq": "not installed",
+      "autoawq": "not installed",
+      "smoothquant": "not installed",
+      "lm-eval": "0.4.11",
+      "vllm": "not installed",
+      "safetensors": "0.7.0",
+      "tokenizers": "0.22.2",
+      "bitsandbytes": "not installed",
+      "scipy": "1.17.0",
+      "numpy": "2.3.5"
+    }
+  },
+  "warnings": []
+}

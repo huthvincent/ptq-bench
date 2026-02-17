@@ -1,0 +1,22 @@
+# ==============================================================================
+# FORGE — 动态秩免训练潜空间注意力 KV Cache 压缩
+# Fast On-chip Reconstruction of Generative Embeddings
+# 通过 SVD 分块压缩 KV Cache，动态秩适配信息丰富度
+# ==============================================================================
+
+name: "forge"
+display_name: "FORGE (Fast On-chip Reconstruction of Generative Embeddings)"
+supported_tracks: ["C"]
+library: "transformers"
+wrapper: "forge"
+
+# KV Cache 压缩参数
+kv:
+  chunk_size: 16              # 每块 token 数 (降低以触发更多压缩)
+  energy_threshold: 0.95      # SVD 能量保留阈值 (0~1)
+  min_rank: 2                 # 最小秩 (废话段落)
+  max_rank: 32                # 最大秩 (核心段落)
+
+# FORGE 是免校准的
+calibration:
+  required: false

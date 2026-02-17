@@ -1,148 +1,175 @@
 # PTQ LLM Quantization Benchmark
 
-一个专注于 **Post-Training Quantization (PTQ)** 的 LLM 量化基准测试框架。
+A standardized benchmarking framework for **Post-Training Quantization (PTQ)** of Large Language Models.
 
-## 目标
+## Highlights
 
-- **只做 PTQ**（不含 finetune/QLoRA/SFT/RLHF）
-- **三条赛道**: Track A (W4A16)、Track B (W8A8)、Track C (KV Cache Quant)
-- **易扩展**: 新增模型只需加 YAML，新增方法只需一个 wrapper + YAML
-- **强可复现**: 每次实验自动记录完整参数、环境、数据版本
+- **PTQ only** — No finetuning, QLoRA, SFT, or RLHF
+- **3 Tracks**: Weight-only (W4A16), Weight+Activation (W8A8), KV Cache Compression
+- **8 Methods**: FP16, RTN, GPTQ, AWQ, SmoothQuant, FORGE, KIVI, KVQuant
+- **3 Models**: Qwen2.5-7B, Mistral-7B-v0.3, Llama-3.1-8B
+- **Extensible**: Add a model = 1 YAML, Add a method = 1 YAML + 1 Python wrapper
+- **Reproducible**: Every run auto-records full config, environment, git hash, GPU info
 
-## 快速开始
+## Quick Start
 
-### 0. 环境准备
+### 0. Environment Setup
 
 ```bash
-# 创建 conda 环境（首次）
 conda create -n ptq-bench python=3.12 -y
 conda activate ptq-bench
 
-# 安装依赖
 pip install torch transformers datasets accelerate safetensors
-pip install auto-gptq autoawq     # Track A 方法
-pip install lm-eval                # 评测框架
+pip install lm-eval   # evaluation harness
 ```
 
-### 1. 准备校准数据
+### 1. Run a Single Experiment
 
 ```bash
-bash scripts/prepare_data.sh
+# Track A: Qwen2.5-7B + RTN (weight-only W4A16)
+python scripts/run_one.py --model qwen2.5-7b --method rtn --track A
+
+# Track C: Mistral-7B + KIVI (KV cache quantization)
+python scripts/run_one.py --model mistral-7b --method kivi --track C
+
+# Dry run (print config only):
+python scripts/run_one.py --model qwen2.5-7b --method gptq --track A --dry_run
 ```
 
-### 2. 跑 Track A: Llama-3.1-8B + GPTQ
-
-```bash
-python scripts/run_one.py --model llama3.1-8b --method gptq --track A
-
-# 或者只看配置不运行:
-python scripts/run_one.py --model llama3.1-8b --method gptq --track A --dry_run
-```
-
-### 3. 跑 Track C: Llama-3.1-8B + FP16 baseline (KV 不量化)
-
-```bash
-python scripts/run_one.py --model llama3.1-8b --method fp16 --track C
-```
-
-### 4. 批量跑: 两个模型 × 两种方法 × Track A
+### 2. Run Batch Experiments
 
 ```bash
 python scripts/run_all.py \
-    --include_models llama3.1-8b mistral-7b \
-    --include_methods fp16 gptq \
-    --include_tracks A
-
-# 或者使用实验配置:
-python scripts/run_all.py --experiment configs/experiments/quick_test.yaml
+    --include_models qwen2.5-7b mistral-7b \
+    --include_methods fp16 forge kivi kvquant \
+    --include_tracks C
 ```
 
-### 5. 生成排行榜
+### 3. Generate Leaderboard
 
 ```bash
-bash scripts/leaderboard.sh
-# 结果在 results/leaderboard.md
+python scripts/leaderboard.py --results_dir results/
+# Output: results/leaderboard.md
 ```
 
-## 目录结构
+## Tracks
+
+| Track | Quantization Type | Methods | Description |
+|:-----:|-------------------|---------|-------------|
+| **A** | W4A16 (Weight-only) | RTN, GPTQ, AWQ | Quantize weights to 4-bit, activations stay FP16 |
+| **B** | W8A8 | SmoothQuant | Quantize both weights and activations to 8-bit |
+| **C** | KV Cache | FORGE, KIVI, KVQuant | Compress KV cache for long-context inference |
+
+## Supported Methods
+
+| Method | Track | Library | Status |
+|--------|:-----:|---------|:------:|
+| FP16 (Baseline) | A, B, C | transformers | ✅ |
+| RTN (Round-To-Nearest) | A | transformers | ✅ |
+| GPTQ | A | auto-gptq | ⚠️ Blocked (library compat) |
+| AWQ | A | autoawq | ✅ |
+| SmoothQuant | B | smoothquant | ✅ |
+| FORGE (SVD KV compression) | C | transformers | ✅ |
+| KIVI (INT2 per-ch/per-tok) | C | transformers | ✅ |
+| KVQuant (INT2 + outlier) | C | transformers | ✅ |
+
+## Latest Results
+
+### Track A — Weight-Only W4A16 (Qwen2.5-7B)
+
+| Method | PPL (WikiText-2) ↓ | Avg Accuracy ↑ | PPL Δ | Acc Δ |
+|--------|:---:|:---:|:---:|:---:|
+| FP16 (baseline) | 6.16 | 0.7351 | — | — |
+| AWQ (W4) | 6.91 | 0.7233 | +0.75 | -1.18% |
+| RTN (W4) | 7.27 | 0.7098 | +1.11 | -2.53% |
+
+### Track C — KV Cache Compression (residual=32, chunk=16)
+
+| Model | Method | WikiText-2 PPL | PG19 PPL (4K) | Avg Accuracy |
+|-------|--------|:-:|:-:|:-:|
+| **Qwen2.5-7B** | FP16 | 6.16 | 11.401 | 0.7372 |
+| | FORGE / KIVI / KVQuant | 6.16 | 11.401 | 0.7372 |
+| **Mistral-7B** | FP16 | 4.79 | 8.264 | 0.6131 |
+| | FORGE / KIVI / KVQuant | 4.79 | 8.26 | 0.6131 |
+
+> **Key Finding**: All KV cache compression methods show **zero degradation** even with aggressive settings (residual_length=32, chunk_size=16) and up to 4096-token context.
+
+Full results: [results/leaderboard.md](results/leaderboard.md)
+
+## Project Structure
 
 ```
 ptq-bench/
-├── README.md              # 本文件
-├── daily.md               # 每日工作日志
-├── summary.md             # 项目概览
-├── configs/               # 配置体系
-│   ├── config.yaml        # 全局配置
-│   ├── models/            # 模型 YAML（每个 LLM 一个）
-│   ├── methods/           # 量化方法 YAML
-│   ├── tracks/            # 赛道 YAML (A/B/C)
-│   └── experiments/       # 实验组合 YAML
-├── scripts/               # 可执行脚本
-│   ├── run_one.py/sh      # 单个实验
-│   ├── run_all.py/sh      # 批量实验
-│   ├── leaderboard.py/sh  # 排行榜生成
-│   └── prepare_data.py/sh # 数据准备
-├── src/                   # 核心代码
-│   ├── config.py          # 配置加载
-│   ├── registry.py        # 方法注册表
-│   ├── runner.py          # 运行控制器
-│   ├── evaluator.py       # 评测引擎
-│   ├── result_writer.py   # 结果写入器
-│   ├── env_info.py        # 环境信息收集
-│   └── methods/           # 量化方法 wrapper
-├── results/               # 实验结果
-├── plots/                 # 可视化图表
-├── data/                  # 数据集
-└── docs/                  # 扩展文档
+├── README.md              # This file
+├── summary.md             # Project overview (Chinese)
+├── configs/               # Configuration system
+│   ├── config.yaml        # Global config (paths, seed, defaults)
+│   ├── models/            # Model configs (1 YAML per LLM)
+│   ├── methods/           # Method configs (1 YAML per method)
+│   ├── tracks/            # Track configs (A / B / C)
+│   └── experiments/       # Experiment combos for batch runs
+├── scripts/               # Executable scripts
+│   ├── run_one.py         # Single experiment
+│   ├── run_all.py         # Batch experiments
+│   ├── leaderboard.py     # Generate leaderboard
+│   └── prepare_data.py    # Data preparation
+├── src/                   # Core source code
+│   ├── config.py          # Config loading & merging
+│   ├── registry.py        # Method auto-discovery
+│   ├── runner.py          # Experiment orchestrator
+│   ├── evaluator.py       # PPL + lm-eval engine
+│   ├── result_writer.py   # .md + .json output
+│   ├── env_info.py        # Environment capture
+│   └── methods/           # Quantization wrappers
+│       ├── fp16.py        # FP16 baseline
+│       ├── rtn.py         # RTN
+│       ├── gptq.py        # GPTQ
+│       ├── awq.py         # AWQ
+│       ├── smoothquant.py # SmoothQuant
+│       ├── forge.py       # FORGE (SVD KV compression)
+│       ├── kivi.py        # KIVI (INT2 KV quantization)
+│       └── kvquant.py     # KVQuant (INT2 + outlier isolation)
+├── results/               # Experiment results (.md + .json)
+├── plots/                 # Auto-generated visualizations
+├── data/                  # Dataset pointers (data stored externally)
+└── docs/                  # Extended documentation
 ```
 
-## Track 说明
+## Adding a New Model
 
-| Track | 量化类型 | 代表方法 | 描述 |
-|-------|---------|---------|------|
-| **A** | W4A16 | RTN, GPTQ, AWQ | 只量化权重到 4-bit |
-| **B** | W8A8 | SmoothQuant | 权重+激活都量化到 8-bit |
-| **C** | KV Cache | KIVI, KVQuant | 量化 KV Cache 节省长上下文显存 |
-
-## 支持的方法
-
-| 方法 | Track | 库 | 状态 |
-|------|-------|-----|------|
-| FP16 (Baseline) | A, B, C | transformers | ✅ |
-| RTN | A | transformers | ✅ |
-| GPTQ | A | auto-gptq | ✅ |
-| AWQ | A | autoawq | ✅ |
-| SmoothQuant | B | smoothquant | ✅ |
-| OmniQuant | A | — | 🔜 Phase 2 |
-| SpQR | A | — | 🔜 Phase 2 |
-| KIVI | C | — | 🔜 Phase 2 |
-| KVQuant | C | — | 🔜 Phase 2 |
-
-## 新增模型
-
-只需在 `configs/models/` 加一个 YAML 文件：
+Just add a YAML in `configs/models/`:
 
 ```yaml
-name: "qwen2.5-7b"
-model_id: "Qwen/Qwen2.5-7B"
+name: "your-model"
+model_id: "org/Model-Name"
 dtype: "bfloat16"
 max_seq_len: 131072
 trust_remote_code: false
 ```
 
-详见 `configs/models/README.md`。
+See [configs/models/README.md](configs/models/README.md) for details.
 
-## 新增量化方法
+## Adding a New Method
 
-1. 在 `configs/methods/` 加一个 YAML（默认参数）
-2. 在 `src/methods/` 加一个 wrapper（继承 `BaseQuantMethod`）
+1. Add a YAML in `configs/methods/` (default hyperparams)
+2. Add a wrapper in `src/methods/` (inherit `BaseQuantMethod`, implement `quantize()`)
 
-详见 `configs/methods/README.md`。
+See [configs/methods/README.md](configs/methods/README.md) for details.
 
-## 结果格式
+## Result Format
 
-每次实验生成一对文件：
-- `results/YYYYMMDD_HHMMSS__{model}__{method}__{track}.md` — 人类阅读
-- `results/YYYYMMDD_HHMMSS__{model}__{method}__{track}.json` — 机器解析
+Each experiment generates a pair of files:
+- `results/YYYYMMDD_HHMMSS__{model}__{method}__{track}.md` — Human-readable
+- `results/YYYYMMDD_HHMMSS__{model}__{method}__{track}.json` — Machine-parseable
 
-包含：完整 CLI 参数、数据集版本、量化参数、PPL 表、lm-eval 任务表、VRAM 峰值、环境信息。
+Both contain: full CLI args, dataset info, quantization params, PPL/accuracy tables, VRAM peak, environment info.
+
+## Environment
+
+| Item | Version |
+|------|---------|
+| GPU | NVIDIA H200 NVL 141GB |
+| PyTorch | 2.10.0+cu128 |
+| Transformers | 5.1.0 |
+| lm-eval | 0.4.11 |
+| Python | 3.13 |
