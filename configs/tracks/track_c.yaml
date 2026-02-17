@@ -27,3 +27,17 @@ eval:
     enabled: true                  # Phase 2 已启用
     max_seq_len: 4096
     tasks: ["longbench"]
+  # Phase 3: KV Cache 压力测试
+  kv_stress_test:
+    enabled: true
+    passkey_retrieval:
+      enabled: true
+      num_keys: 20                 # 测试 20 个随机密钥
+      context_length: 2048         # 上下文长度 (远超 residual_length=32)
+      depths: [0.1, 0.25, 0.5, 0.75]  # 密钥插入深度
+      seed: 42
+    generation_ppl:
+      enabled: true
+      num_prompts: 5               # 5 个 PG19 长文本 prompt
+      prompt_length: 1500          # prompt 长度
+      gen_length: 512              # 生成长度

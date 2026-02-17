@@ -1,0 +1,379 @@
+{
+  "meta": {
+    "filename": "20260216_220439__qwen2.5-7b__forge__trackC",
+    "timestamp": "2026-02-16T22:04:39.440685",
+    "script": "scripts/run_one.py",
+    "cli_args": "scripts/run_one.py --model qwen2.5-7b --method forge --track C",
+    "model": "qwen2.5-7b",
+    "method": "forge",
+    "track": "C"
+  },
+  "config": {
+    "env": {
+      "conda_env": "ptq-bench",
+      "python": "3.11",
+      "cuda": "12.8",
+      "torch": "2.10.0+cu128",
+      "transformers": "4.52",
+      "lm_eval": "0.4.11",
+      "vllm": null
+    },
+    "paths": {
+      "project_root": "/data2/zhu11/ptq-bench",
+      "data_root": "/data2/zhu11/quant_source/data",
+      "results_root": "/data2/zhu11/ptq-bench/results",
+      "plots_root": "/data2/zhu11/ptq-bench/plots",
+      "cache_dir": "/data2/zhu11/quant_source/models",
+      "model_cache_dir": "/data2/zhu11/quant_source/models"
+    },
+    "common_hyperparams": {
+      "seed": 42,
+      "max_seq_len": 2048,
+      "dtype": "float16",
+      "batch_size": 1,
+      "eval_default_fewshot": {
+        "mmlu": 5,
+        "gsm8k": 8,
+        "hellaswag": 10,
+        "winogrande": 5,
+        "arc_easy": 25,
+        "arc_challenge": 25,
+        "piqa": 0
+      }
+    },
+    "default_calibration": {
+      "dataset": "wikitext2",
+      "num_samples": 128,
+      "seq_len": 2048,
+      "packing": true,
+      "seed": 42
+    },
+    "default_eval": {
+      "core_quality": {
+        "ppl_datasets": [
+          "wikitext2"
+        ],
+        "lm_eval_tasks": [
+          "mmlu",
+          "hellaswag",
+          "winogrande",
+          "arc_easy",
+          "arc_challenge",
+          "piqa",
+          "gsm8k"
+        ]
+      },
+      "system_metrics": {
+        "enabled": false,
+        "batch_sizes": [
+          1,
+          8,
+          32
+        ],
+        "prompt_lens": [
+          128,
+          512,
+          2048
+        ],
+        "gen_lens": [
+          128,
+          256
+        ]
+      },
+      "long_context": {
+        "enabled": false,
+        "max_seq_len": 32768,
+        "tasks": [
+          "longbench"
+        ]
+      }
+    },
+    "name": "forge",
+    "display_name": "FORGE (Fast On-chip Reconstruction of Generative Embeddings)",
+    "description": "量化 KV Cache 以节省长上下文推理的显存。覆盖 KIVI、KVQuant 等方法。",
+    "constraints": {
+      "weight_bits": 16,
+      "activation_bits": 16,
+      "kv_quantize": true,
+      "kv_bits_default": 4
+    },
+    "eval": {
+      "ppl_datasets": [
+        "wikitext2",
+        "longbench"
+      ],
+      "lm_eval_tasks": [
+        "mmlu",
+        "hellaswag",
+        "winogrande"
+      ],
+      "primary_metric": "avg_accuracy",
+      "system_metrics": false,
+      "long_context": {
+        "enabled": true,
+        "max_seq_len": 4096,
+        "tasks": [
+          "longbench"
+        ]
+      },
+      "kv_stress_test": {
+        "enabled": true,
+        "passkey_retrieval": {
+          "enabled": true,
+          "num_keys": 20,
+          "context_length": 2048,
+          "depths": [
+            0.1,
+            0.25,
+            0.5,
+            0.75
+          ],
+          "seed": 42
+        },
+        "generation_ppl": {
+          "enabled": true,
+          "num_prompts": 5,
+          "prompt_length": 1500,
+          "gen_length": 512
+        }
+      }
+    },
+    "supported_tracks": [
+      "C"
+    ],
+    "library": "transformers",
+    "wrapper": "forge",
+    "kv": {
+      "chunk_size": 16,
+      "energy_threshold": 0.95,
+      "min_rank": 2,
+      "max_rank": 32
+    },
+    "calibration": {
+      "required": false
+    },
+    "model": {
+      "name": "qwen2.5-7b",
+      "model_id": "Qwen/Qwen2.5-7B",
+      "dtype": "bfloat16",
+      "max_seq_len": 131072,
+      "trust_remote_code": false,
+      "revision": null,
+      "tokenizer_id": null,
+      "adapter": null,
+      "attn_implementation": null,
+      "model_kwargs": {},
+      "pretrained_quant_models": {
+        "awq": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+        "gptq": "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4"
+      }
+    },
+    "track": "C"
+  },
+  "results": {
+    "ppl": {
+      "wikitext2": {
+        "ppl": 6.16,
+        "nll": 1.81808,
+        "num_windows": 291
+      },
+      "longbench": {
+        "ppl": 11.401,
+        "nll": 2.433697,
+        "num_windows": 294
+      }
+    },
+    "lm_eval": {
+      "error": "The read operation timed out"
+    },
+    "system_metrics": {
+      "vram_peak_mb": 22167.8
+    },
+    "eval_time_seconds": 137.8,
+    "kv_stress_test": {
+      "passkey_retrieval": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "total_correct": 80,
+        "total_tests": 80,
+        "context_length": 2048,
+        "num_keys": 20,
+        "details": [
+          {
+            "trial": 0,
+            "depth": 0.1,
+            "passkey": "93810",
+            "generated": "93810.",
+            "correct": true,
+            "context_tokens": 1940
+          },
+          {
+            "trial": 0,
+            "depth": 0.25,
+            "passkey": "93810",
+            "generated": "93810.",
+            "correct": true,
+            "context_tokens": 1919
+          },
+          {
+            "trial": 0,
+            "depth": 0.5,
+            "passkey": "93810",
+            "generated": "93810.",
+            "correct": true,
+            "context_tokens": 1919
+          },
+          {
+            "trial": 0,
+            "depth": 0.75,
+            "passkey": "93810",
+            "generated": "93810.",
+            "correct": true,
+            "context_tokens": 1919
+          },
+          {
+            "trial": 1,
+            "depth": 0.1,
+            "passkey": "24592",
+            "generated": "24592.",
+            "correct": true,
+            "context_tokens": 1940
+          },
+          {
+            "trial": 1,
+            "depth": 0.25,
+            "passkey": "24592",
+            "generated": "24592.",
+            "correct": true,
+            "context_tokens": 1919
+          },
+          {
+            "trial": 1,
+            "depth": 0.5,
+            "passkey": "24592",
+            "generated": "24592.",
+            "correct": true,
+            "context_tokens": 1919
+          },
+          {
+            "trial": 1,
+            "depth": 0.75,
+            "passkey": "24592",
+            "generated": "24592.",
+            "correct": true,
+            "context_tokens": 1919
+          },
+          {
+            "trial": 2,
+            "depth": 0.1,
+            "passkey": "13278",
+            "generated": "13278.",
+            "correct": true,
+            "context_tokens": 1940
+          },
+          {
+            "trial": 2,
+            "depth": 0.25,
+            "passkey": "13278",
+            "generated": "13278.",
+            "correct": true,
+            "context_tokens": 1919
+          }
+        ]
+      },
+      "generation_ppl": {
+        "gen_ppl": 14.3703,
+        "num_samples": 5,
+        "prompt_length": 1500,
+        "gen_length": 512,
+        "per_sample": [
+          {
+            "sample": 0,
+            "prompt_tokens": 1500,
+            "gen_tokens": 512,
+            "gen_ppl": 6.8843,
+            "generated_preview": " of the lynching\nand protect the life and property of the citizens. The Minnesotian\nsent a special c"
+          },
+          {
+            "sample": 1,
+            "prompt_tokens": 1500,
+            "gen_tokens": 512,
+            "gen_ppl": 31.1578,
+            "generated_preview": " a man of the world, a wanderer, a poet, a\nrevolutionist. He was a German, and he was a German in Eg"
+          },
+          {
+            "sample": 2,
+            "prompt_tokens": 1500,
+            "gen_tokens": 512,
+            "gen_ppl": 9.2521,
+            "generated_preview": "\nBrandy.--Ludicrous Anecdote.\n\n\nThe Jews of Mogador are a very numerous body, and are divided into t"
+          },
+          {
+            "sample": 3,
+            "prompt_tokens": 1500,
+            "gen_tokens": 512,
+            "gen_ppl": 15.9453,
+            "generated_preview": " those who have been our friends; by the\nconsideration which should make us shrink from the painful "
+          },
+          {
+            "sample": 4,
+            "prompt_tokens": 1500,
+            "gen_tokens": 512,
+            "gen_ppl": 8.6119,
+            "generated_preview": " went to,\nhe 'ad a pint o' six 'arf, and then another, and then another, and then\nanother, and then "
+          }
+        ]
+      }
+    },
+    "quant_time_seconds": 0.0
+  },
+  "env": {
+    "timestamp": "2026-02-16T22:04:39.414504",
+    "timestamp_utc": "2026-02-17T03:04:39.414509+00:00",
+    "hostname": "sev-cxl",
+    "os": "Linux 6.11.0-snp-host-68799c0277b2",
+    "python_version": "3.13.11 | packaged by Anaconda, Inc. | (main, Dec 10 2025, 21:28:48) [GCC 14.3.0]",
+    "git": {
+      "commit_hash": "0f2d56217d4fb6a83a5198222f1dc582106a634a",
+      "branch": "main",
+      "is_dirty": true
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA H200 NVL",
+        "memory_total_mb": 143771,
+        "driver_version": "580.95.05",
+        "compute_capability": "9.0"
+      }
+    ],
+    "cuda": {
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "cudnn_version": "91002",
+      "torch_cuda_arch_list": null
+    },
+    "packages": {
+      "torch": "2.10.0+cu128",
+      "transformers": "5.1.0",
+      "datasets": "4.5.0",
+      "accelerate": "1.12.0",
+      "auto-gptq": "not installed",
+      "autoawq": "not installed",
+      "smoothquant": "not installed",
+      "lm-eval": "0.4.11",
+      "vllm": "not installed",
+      "safetensors": "0.7.0",
+      "tokenizers": "0.22.2",
+      "bitsandbytes": "not installed",
+      "scipy": "1.17.0",
+      "numpy": "2.4.2"
+    }
+  },
+  "warnings": []
+}
