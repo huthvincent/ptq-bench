@@ -12,10 +12,10 @@ wrapper: "forge"
 
 # KV Cache 压缩参数
 kv:
-  chunk_size: 16              # 每块 token 数 (降低以触发更多压缩)
-  energy_threshold: 0.95      # SVD 能量保留阈值 (0~1)
-  min_rank: 2                 # 最小秩 (废话段落)
-  max_rank: 32                # 最大秩 (核心段落)
+  chunk_size: 64              # 每块 token 数
+  energy_threshold: 0.999     # SVD 能量保留阈值 (FP16 需要较高值, 诊断确认 0.95 导致 rank=2)
+  min_rank: 2                 # 最小秩
+  max_rank: 64                # 最大秩
 
 # FORGE 是免校准的
 calibration:

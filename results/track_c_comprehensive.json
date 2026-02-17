@@ -1,0 +1,374 @@
+{
+  "passkey": {
+    "2K / res=128": {
+      "FP16": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 5.0
+      },
+      "KIVI": {
+        "accuracy": 0.45,
+        "depth_accuracy": {
+          "0.1": 0.5,
+          "0.25": 0.7,
+          "0.5": 0.3,
+          "0.75": 0.3
+        },
+        "time": 7.3
+      },
+      "KVQuant": {
+        "accuracy": 0.725,
+        "depth_accuracy": {
+          "0.1": 0.8,
+          "0.25": 0.8,
+          "0.5": 0.7,
+          "0.75": 0.6
+        },
+        "time": 8.0
+      },
+      "FORGE": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 492.1
+      }
+    },
+    "2K / res=32": {
+      "FP16": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 4.7
+      },
+      "KIVI": {
+        "accuracy": 0.325,
+        "depth_accuracy": {
+          "0.1": 0.2,
+          "0.25": 0.6,
+          "0.5": 0.3,
+          "0.75": 0.2
+        },
+        "time": 7.4
+      },
+      "KVQuant": {
+        "accuracy": 0.675,
+        "depth_accuracy": {
+          "0.1": 0.4,
+          "0.25": 0.7,
+          "0.5": 0.9,
+          "0.75": 0.7
+        },
+        "time": 8.2
+      },
+      "FORGE": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 492.3
+      }
+    },
+    "4K / res=128": {
+      "FP16": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 7.4
+      },
+      "KIVI": {
+        "accuracy": 0.225,
+        "depth_accuracy": {
+          "0.1": 0.3,
+          "0.25": 0.1,
+          "0.5": 0.3,
+          "0.75": 0.2
+        },
+        "time": 9.9
+      },
+      "KVQuant": {
+        "accuracy": 0.375,
+        "depth_accuracy": {
+          "0.1": 0.2,
+          "0.25": 0.3,
+          "0.5": 0.6,
+          "0.75": 0.4
+        },
+        "time": 11.0
+      },
+      "FORGE": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 984.0
+      }
+    },
+    "4K / res=32": {
+      "FP16": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 7.3
+      },
+      "KIVI": {
+        "accuracy": 0.375,
+        "depth_accuracy": {
+          "0.1": 0.3,
+          "0.25": 0.4,
+          "0.5": 0.4,
+          "0.75": 0.4
+        },
+        "time": 10.1
+      },
+      "KVQuant": {
+        "accuracy": 0.35,
+        "depth_accuracy": {
+          "0.1": 0.4,
+          "0.25": 0.3,
+          "0.5": 0.1,
+          "0.75": 0.6
+        },
+        "time": 11.2
+      },
+      "FORGE": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 983.8
+      }
+    },
+    "8K / res=64": {
+      "FP16": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 13.2
+      },
+      "KIVI": {
+        "accuracy": 0.1,
+        "depth_accuracy": {
+          "0.1": 0.0,
+          "0.25": 0.2,
+          "0.5": 0.1,
+          "0.75": 0.1
+        },
+        "time": 16.9
+      },
+      "KVQuant": {
+        "accuracy": 0.275,
+        "depth_accuracy": {
+          "0.1": 0.2,
+          "0.25": 0.1,
+          "0.5": 0.4,
+          "0.75": 0.4
+        },
+        "time": 19.1
+      },
+      "FORGE": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 1982.7
+      }
+    },
+    "8K / res=32": {
+      "FP16": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 13.2
+      },
+      "KIVI": {
+        "accuracy": 0.05,
+        "depth_accuracy": {
+          "0.1": 0.0,
+          "0.25": 0.1,
+          "0.5": 0.1,
+          "0.75": 0.0
+        },
+        "time": 17.0
+      },
+      "KVQuant": {
+        "accuracy": 0.425,
+        "depth_accuracy": {
+          "0.1": 0.2,
+          "0.25": 0.5,
+          "0.5": 0.6,
+          "0.75": 0.4
+        },
+        "time": 19.1
+      },
+      "FORGE": {
+        "accuracy": 1.0,
+        "depth_accuracy": {
+          "0.1": 1.0,
+          "0.25": 1.0,
+          "0.5": 1.0,
+          "0.75": 1.0
+        },
+        "time": 1982.8
+      }
+    }
+  },
+  "gen_ppl": {
+    "FP16": {
+      "gen_ppl": 1.1959,
+      "num_samples": 3,
+      "prompt_length": 2048,
+      "gen_length": 1024,
+      "per_sample": [
+        {
+          "sample": 0,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.0737,
+          "generated_preview": " The Pioneer Press, which was\nthen the only daily paper in the city, had a special edition printed\na"
+        },
+        {
+          "sample": 1,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.2802,
+          "generated_preview": " heart\nbeat. He turned, and saw a woman of about thirty, with a face of\nunmistakable beauty, and a f"
+        },
+        {
+          "sample": 2,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.2339,
+          "generated_preview": ", \"The Jews are not allowed to wear any other\nclothes than those of the poor, and they are obliged t"
+        }
+      ]
+    },
+    "KIVI": {
+      "gen_ppl": 18420.1973,
+      "num_samples": 3,
+      "prompt_length": 2048,
+      "gen_length": 1024,
+      "per_sample": [
+        {
+          "sample": 0,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1,
+          "gen_ppl": 55258.1541,
+          "generated_preview": ""
+        },
+        {
+          "sample": 1,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.1368,
+          "generated_preview": "\nsoul, and the shortness of the shortness of the shortness of the\nshortness of the shortness of the "
+        },
+        {
+          "sample": 2,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.3011,
+          "generated_preview": ", \"I am a slave of the Sultan, and I have no\npower to go to another country, because I am a slave of"
+        }
+      ]
+    },
+    "KVQuant": {
+      "gen_ppl": 1.1984,
+      "num_samples": 3,
+      "prompt_length": 2048,
+      "gen_length": 1024,
+      "per_sample": [
+        {
+          "sample": 0,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.242,
+          "generated_preview": " The news caused a\ngreat alarm in the city, and a larger alarm was caused when the\nfireman after a t"
+        },
+        {
+          "sample": 1,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.2411,
+          "generated_preview": "\nheart go into the\nsoul of the man's voice. He drew his hand in the air, and he\nthought he saw the\ns"
+        },
+        {
+          "sample": 2,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.1122,
+          "generated_preview": ", \"I asked the Jew, why he did not so, and he\nanswered, \"I am a Jew, and so am I, and so is the Jew,"
+        }
+      ]
+    },
+    "FORGE": {
+      "gen_ppl": 1.1883,
+      "num_samples": 3,
+      "prompt_length": 2048,
+      "gen_length": 1024,
+      "per_sample": [
+        {
+          "sample": 0,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.0987,
+          "generated_preview": " The Pioneer Press, which was\nthen the only morning paper in the city, had a special edition\nprinted"
+        },
+        {
+          "sample": 1,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.3528,
+          "generated_preview": " heart\nbeat. He turned to look at her, and saw a woman of about thirty, with\nthe most beautiful face"
+        },
+        {
+          "sample": 2,
+          "prompt_tokens": 2048,
+          "gen_tokens": 1024,
+          "gen_ppl": 1.1136,
+          "generated_preview": ", \"The Jews are not allowed to wear any other\nclothes than a white shirt, and a black cloak, which t"
+        }
+      ]
+    }
+  }
+}
