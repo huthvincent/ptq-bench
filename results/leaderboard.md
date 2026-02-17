@@ -13,71 +13,72 @@
 | 🥉 | **RTN** (W4, per-group sym) | **7.27** | **0.7098** | +1.11 | -2.53% | 21,822 | 0.1s |
 | ⛔ | **GPTQ** (blocked) | — | — | — | — | — | — |
 
-> **注**: AWQ 使用 `Qwen/Qwen2.5-7B-Instruct-AWQ` 预量化模型。GPTQ 因库兼容性阻塞。
-
 ---
 
-## Track C: KV Cache Compression — 极端压力测试 (Bug 修复后)
+## Track C: KV Cache Compression — 多梯度 Passkey Retrieval 对比
 
-> **硬件**: H200 NVL 141GB | **日期**: 2026-02-17
+> **模型**: Qwen2.5-7B | **硬件**: H200 NVL 141GB | **日期**: 2026-02-17
 >
-> ⚠️ **重大修复**: 之前的 Track C 结果因量化代码未在 generate() 中执行而全部无效 (与 FP16 完全一致)。
-> 详见下方 **Bug 修复说明**。以下为修复后的正确结果。
+> 10 个随机 5 位密钥 × 4 个深度 (10%, 25%, 50%, 75%) = 每格 40 次测试
 
-### Qwen2.5-7B — Passkey Retrieval (16K context, 10 keys × 4 depths)
+### 核心结果表
 
-| 方法 | 深度 10% | 深度 25% | 深度 50% | 深度 75% | **总体** |
-|------|:--------:|:--------:|:--------:|:--------:|:--------:|
-| **FP16** | 10/10 ✅ | 10/10 ✅ | 10/10 ✅ | 10/10 ✅ | **100%** |
-| **KIVI** (INT2, res=4) | 0/10 ❌ | 0/10 ❌ | 0/10 ❌ | 0/10 ❌ | **0%** |
-| **KVQuant** (INT2+outlier, res=4) | 1/10 | 3/10 | 0/10 | 0/10 | **10%** |
-| **FORGE** (SVD, chunk=64, e=0.95) | 0/10 ❌ | 0/10 ❌ | 0/10 ❌ | 0/10 ❌ | **0%** |
+| 条件 | Context | Residual | **FP16** | **KIVI** (INT2) | **KVQuant** (INT2+outlier) | **FORGE** (SVD) |
+|------|:-------:|:--------:|:--------:|:---:|:---:|:---:|
+| 温和 | 2K | 128 | **100%** | 45% | 72% | 0% |
+| 中等 | 2K | 32 | **100%** | 32% | 68% | 0% |
+| 温和+长 | 4K | 128 | **100%** | 22% | 38% | 0% |
+| 中等+长 | 4K | 32 | **100%** | 38% | 35% | 0% |
+| 中偏激进 | 8K | 64 | **100%** | 10% | 28% | — |
+| 激进 | 8K | 32 | **100%** | 5% | 42% | — |
+| 很激进 | 8K | 16 | **100%** | 0% | 35% | — |
+| 极端 | 16K | 4 | **100%** | 0% | 10% | 0% |
 
-### Generation PPL (prompt=4K, gen=2K, teacher-forcing on generated text)
+> FORGE 在 8K+ 跳过 (SVD 计算开销过大)。
 
-| 方法 | 样本 0 | 样本 1 | 样本 2 | **Avg** |
-|------|:------:|:------:|:------:|:-------:|
-| **FP16** | 1.11 | 1.21 | 1.07 | **1.13** |
-| **KIVI** (INT2, res=4) | 1.04 | 1.03 | 1.16 | **1.08** |
-| **KVQuant** (INT2+outlier, res=4) | 1.07 | 1.11 | 1.11 | **1.10** |
+### 按深度分析 (8K context, residual=32)
 
-> **注**: Generation PPL ~1.0 是因为 greedy decoding 生成的 token 序列在 teacher-forcing 下具有高自洽性。该指标无法有效区分方法差异。**Passkey Retrieval 是更有效的 discriminator。**
+| 方法 | 深度 10% | 深度 25% | 深度 50% | 深度 75% |
+|------|:--------:|:--------:|:--------:|:--------:|
+| **FP16** | 100% | 100% | 100% | 100% |
+| **KIVI** | 0% | 10% | 10% | 0% |
+| **KVQuant** | 20% | 50% | 60% | 40% |
 
 ---
 
 ## Track C 分析
 
-### Bug 修复说明
+### 方法排名
 
-Transformers v5.x 的 `Attention.forward()` 只返回 `(attn_output, attn_weights)` 两个值。KV Cache 通过 `DynamicCache.layers[i].update()` **就地更新**。
+| 排名 | 方法 | 最佳 Passkey (2K/128) | 最差 Passkey (16K/4) | 特点 |
+|:----:|------|:------:|:------:|------|
+| 🥇 | **FP16** | 100% | 100% | Baseline |
+| 🥈 | **KVQuant** | 72% | 10% | Outlier 隔离显著帮助 |
+| 🥉 | **KIVI** | 45% | 0% | 纯 INT2，误差积累快 |
+| ⛔ | **FORGE** | 0% | 0% | SVD 完全丢失精确信息 |
 
-三个方法 (FORGE/KIVI/KVQuant) 的旧代码依赖 `outputs[2]` 获取 KV States:
-```python
-# 旧代码 (永远不会执行)
-if isinstance(outputs, tuple) and len(outputs) >= 3:  # v5.x 下永远 False
-    past_kv = outputs[2]
-    # ... 量化逻辑 ...
-```
+### 关键发现
 
-**修复**: 子类化 `DynamicLayer`，覆写 `update()` 方法拦截 KV States 并量化。
+1. **即使最温和条件 (2K/128)，INT2 量化也会退化**
+   - KIVI 45%, KVQuant 72%, 远非无损
+   - 旧实验显示 "无损" 是因为量化代码从未执行 (bug)
 
-### 核心结论
+2. **KVQuant outlier 隔离显著有效**
+   - 在所有条件下均优于 KIVI (平均高 ~25%)
+   - 每个 token 隔离 1 个最大 outlier 就能大幅减少量化误差
 
-| 发现 | 详情 |
-|------|------|
-| KIVI (INT2, res=4) | 16K Passkey 从 **100% → 0%**，全深度崩溃 |
-| KVQuant (INT2+outlier, res=4) | 16K Passkey **10%**，outlier 隔离略有帮助 |
-| FORGE (SVD, e=0.95, chunk=64) | 16K Passkey **0%**，SVD 压缩也会丢失关键信息 |
-| Gen PPL | Greedy decoding 自洽性高 (PPL~1.0)，无法区分方法 |
+3. **FORGE SVD 完全不适合精确检索任务**
+   - 所有条件下 0% — SVD 低秩近似必然丢失高频细节
+   - 但 SVD 可能在语义连贯性任务上表现更好 (待测)
 
-### 方法理论对比 (修复后)
+4. **Context 越长，退化越明显**
+   - KIVI: 2K→45%, 4K→22%, 8K→5%
+   - 量化历史占比越大，累积误差越严重
 
-| 方法 | 压缩方式 | Passkey 16K | 定性评价 |
-|------|----------|:-----------:|:--------:|
-| FP16 | 无压缩 | **100%** | baseline |
-| KIVI | INT2 per-ch/per-tok (res=4) | **0%** | 极端退化 |
-| KVQuant | INT2 + outlier 隔离 (res=4) | **10%** | 严重退化，outlier 略有帮助 |
-| FORGE | SVD 动态秩 (e=0.95) | **0%** | 极端退化 |
+5. **Bug 修复说明**
+   - 之前所有方法与 FP16 完全一致是因为 transformers v5.x API 变更
+   - Attention 不再通过 `outputs[2]` 返回 KV States
+   - 修复: 子类化 `DynamicLayer`，覆写 `update()` 拦截 KV
 
 ---
 

@@ -1,0 +1,299 @@
+{
+  "ctx2048_res128": {
+    "label": "\u6e29\u548c",
+    "context": 2048,
+    "residual": 128,
+    "fp16": {
+      "accuracy": 1.0,
+      "depth_accuracy": {
+        "0.1": 1.0,
+        "0.25": 1.0,
+        "0.5": 1.0,
+        "0.75": 1.0
+      },
+      "time": 5.0
+    },
+    "kivi": {
+      "accuracy": 0.45,
+      "depth_accuracy": {
+        "0.1": 0.5,
+        "0.25": 0.7,
+        "0.5": 0.3,
+        "0.75": 0.3
+      },
+      "time": 7.5
+    },
+    "kvquant": {
+      "accuracy": 0.725,
+      "depth_accuracy": {
+        "0.1": 0.8,
+        "0.25": 0.8,
+        "0.5": 0.7,
+        "0.75": 0.6
+      },
+      "time": 8.2
+    },
+    "forge": {
+      "accuracy": 0.0,
+      "depth_accuracy": {
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.0,
+        "0.75": 0.0
+      },
+      "time": 501.0
+    }
+  },
+  "ctx2048_res32": {
+    "label": "\u4e2d\u7b49",
+    "context": 2048,
+    "residual": 32,
+    "fp16": {
+      "accuracy": 1.0,
+      "depth_accuracy": {
+        "0.1": 1.0,
+        "0.25": 1.0,
+        "0.5": 1.0,
+        "0.75": 1.0
+      },
+      "time": 4.7
+    },
+    "kivi": {
+      "accuracy": 0.325,
+      "depth_accuracy": {
+        "0.1": 0.2,
+        "0.25": 0.6,
+        "0.5": 0.3,
+        "0.75": 0.2
+      },
+      "time": 7.4
+    },
+    "kvquant": {
+      "accuracy": 0.675,
+      "depth_accuracy": {
+        "0.1": 0.4,
+        "0.25": 0.7,
+        "0.5": 0.9,
+        "0.75": 0.7
+      },
+      "time": 8.2
+    },
+    "forge": {
+      "accuracy": 0.0,
+      "depth_accuracy": {
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.0,
+        "0.75": 0.0
+      },
+      "time": 500.6
+    }
+  },
+  "ctx4096_res128": {
+    "label": "\u6e29\u548c+\u957f",
+    "context": 4096,
+    "residual": 128,
+    "fp16": {
+      "accuracy": 1.0,
+      "depth_accuracy": {
+        "0.1": 1.0,
+        "0.25": 1.0,
+        "0.5": 1.0,
+        "0.75": 1.0
+      },
+      "time": 7.4
+    },
+    "kivi": {
+      "accuracy": 0.225,
+      "depth_accuracy": {
+        "0.1": 0.3,
+        "0.25": 0.1,
+        "0.5": 0.3,
+        "0.75": 0.2
+      },
+      "time": 9.9
+    },
+    "kvquant": {
+      "accuracy": 0.375,
+      "depth_accuracy": {
+        "0.1": 0.2,
+        "0.25": 0.3,
+        "0.5": 0.6,
+        "0.75": 0.4
+      },
+      "time": 10.9
+    },
+    "forge": {
+      "accuracy": 0.0,
+      "depth_accuracy": {
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.0,
+        "0.75": 0.0
+      },
+      "time": 1000.9
+    }
+  },
+  "ctx4096_res32": {
+    "label": "\u4e2d\u7b49+\u957f",
+    "context": 4096,
+    "residual": 32,
+    "fp16": {
+      "accuracy": 1.0,
+      "depth_accuracy": {
+        "0.1": 1.0,
+        "0.25": 1.0,
+        "0.5": 1.0,
+        "0.75": 1.0
+      },
+      "time": 7.3
+    },
+    "kivi": {
+      "accuracy": 0.375,
+      "depth_accuracy": {
+        "0.1": 0.3,
+        "0.25": 0.4,
+        "0.5": 0.4,
+        "0.75": 0.4
+      },
+      "time": 10.1
+    },
+    "kvquant": {
+      "accuracy": 0.35,
+      "depth_accuracy": {
+        "0.1": 0.4,
+        "0.25": 0.3,
+        "0.5": 0.1,
+        "0.75": 0.6
+      },
+      "time": 11.2
+    },
+    "forge": {
+      "accuracy": 0.0,
+      "depth_accuracy": {
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.0,
+        "0.75": 0.0
+      },
+      "time": 1000.6
+    }
+  },
+  "ctx8192_res64": {
+    "label": "\u4e2d\u504f\u6fc0\u8fdb",
+    "context": 8192,
+    "residual": 64,
+    "fp16": {
+      "accuracy": 1.0,
+      "depth_accuracy": {
+        "0.1": 1.0,
+        "0.25": 1.0,
+        "0.5": 1.0,
+        "0.75": 1.0
+      },
+      "time": 13.2
+    },
+    "kivi": {
+      "accuracy": 0.1,
+      "depth_accuracy": {
+        "0.1": 0.0,
+        "0.25": 0.2,
+        "0.5": 0.1,
+        "0.75": 0.1
+      },
+      "time": 16.9
+    },
+    "kvquant": {
+      "accuracy": 0.275,
+      "depth_accuracy": {
+        "0.1": 0.2,
+        "0.25": 0.1,
+        "0.5": 0.4,
+        "0.75": 0.4
+      },
+      "time": 19.1
+    },
+    "forge": {
+      "accuracy": "SKIPPED",
+      "reason": "SVD too slow"
+    }
+  },
+  "ctx8192_res32": {
+    "label": "\u6fc0\u8fdb",
+    "context": 8192,
+    "residual": 32,
+    "fp16": {
+      "accuracy": 1.0,
+      "depth_accuracy": {
+        "0.1": 1.0,
+        "0.25": 1.0,
+        "0.5": 1.0,
+        "0.75": 1.0
+      },
+      "time": 13.3
+    },
+    "kivi": {
+      "accuracy": 0.05,
+      "depth_accuracy": {
+        "0.1": 0.0,
+        "0.25": 0.1,
+        "0.5": 0.1,
+        "0.75": 0.0
+      },
+      "time": 17.0
+    },
+    "kvquant": {
+      "accuracy": 0.425,
+      "depth_accuracy": {
+        "0.1": 0.2,
+        "0.25": 0.5,
+        "0.5": 0.6,
+        "0.75": 0.4
+      },
+      "time": 19.2
+    },
+    "forge": {
+      "accuracy": "SKIPPED",
+      "reason": "SVD too slow"
+    }
+  },
+  "ctx8192_res16": {
+    "label": "\u5f88\u6fc0\u8fdb",
+    "context": 8192,
+    "residual": 16,
+    "fp16": {
+      "accuracy": 1.0,
+      "depth_accuracy": {
+        "0.1": 1.0,
+        "0.25": 1.0,
+        "0.5": 1.0,
+        "0.75": 1.0
+      },
+      "time": 13.3
+    },
+    "kivi": {
+      "accuracy": 0.0,
+      "depth_accuracy": {
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.0,
+        "0.75": 0.0
+      },
+      "time": 16.9
+    },
+    "kvquant": {
+      "accuracy": 0.35,
+      "depth_accuracy": {
+        "0.1": 0.2,
+        "0.25": 0.3,
+        "0.5": 0.6,
+        "0.75": 0.3
+      },
+      "time": 19.2
+    },
+    "forge": {
+      "accuracy": "SKIPPED",
+      "reason": "SVD too slow"
+    }
+  }
+}
